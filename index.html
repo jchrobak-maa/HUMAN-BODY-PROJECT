@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Human Body Museum — Organ Research Portal</title>
+  <meta name="description" content="An interactive museum of the human body. Explore 11 organs, their anatomy, the systems they connect to, and the diseases that affect them." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#organ-main">Skip to organ content</a>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <div class="brand">
+        <span class="brand__mark" aria-hidden="true">🫀</span>
+        <div class="brand__text">
+          <span class="brand__title">Human Body Museum</span>
+          <span class="brand__subtitle">Organ Research Portal</span>
+        </div>
+      </div>
+      <button id="navToggle" class="nav-toggle" aria-expanded="false" aria-controls="organNav">
+        <span class="nav-toggle__bar"></span>
+        <span class="nav-toggle__bar"></span>
+        <span class="nav-toggle__bar"></span>
+        <span class="nav-toggle__label">Organs</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- ORGAN PICKER -->
+    <nav id="organNav" class="organ-nav" aria-label="Choose an organ">
+      <p class="organ-nav__heading">Exhibits</p>
+      <ul id="organList" class="organ-nav__list"></ul>
+    </nav>
+
+    <!-- ORGAN CONTENT -->
+    <main id="organ-main" class="organ-main" tabindex="-1">
+      <article id="organArticle" class="organ"></article>
+      <footer class="site-footer">
+        <p>Human Body Museum · An educational exhibit. Content is for learning, not medical advice.</p>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Templates / scripts -->
+  <script src="organs.js"></script>
+  <script src="diagrams.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
