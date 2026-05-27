@@ -19,6 +19,9 @@
      funFacts        array of strings
      vocab           array of { term, definition }   (Tier 3)
      sources         array of { name, url, note }
+     watch           array of { name, url, note }  educational VIDEO links
+                     (Khan Academy + KidsHealth; no YouTube). Powers the
+                     "Watch & learn" section.
 
    NOTE TO BUILDER (Claude Code):
    - Treat all text as VERBATIM content. Format/style it, but do not rewrite
@@ -33,6 +36,10 @@ const ORGANS = [
   {
     id: "heart",
     name: "Heart",
+    watch: [
+      { name: "Khan Academy — Meet the heart!", url: "https://www.khanacademy.org/science/health-and-medicine/circulatory-system/circulatory-system-introduction/v/meet-the-heart", note: "Video lesson on how blood flows through the heart." },
+      { name: "KidsHealth — How the Heart & Circulatory System Work", url: "https://kidshealth.org/en/kids/csmovie.html", note: "Animated video for kids on the heart pumping blood." }
+    ],
     emoji: "🫀",
     overview: {
       location: "The heart sits in the chest, slightly left of center, behind the breastbone (sternum) and between the two lungs. It is roughly the size of your closed fist.",
@@ -94,6 +101,10 @@ const ORGANS = [
   {
     id: "brain",
     name: "Brain",
+    watch: [
+      { name: "Khan Academy — Structure of the nervous system", url: "https://www.khanacademy.org/science/health-and-medicine/human-anatomy-and-physiology/nervous-system-introduction/v/structure-of-the-nervous-system", note: "Video lesson on how the brain and nervous system are organized." },
+      { name: "KidsHealth — How the Brain & Nervous System Work", url: "https://kidshealth.org/en/kids/nsmovie.html", note: "Animated video for kids on the brain and nerves." }
+    ],
     emoji: "🧠",
     overview: {
       location: "Inside the skull, protected by the bony cranium and surrounded by protective fluid (cerebrospinal fluid). It sits at the top of the spinal cord.",
@@ -154,6 +165,10 @@ const ORGANS = [
   {
     id: "lung",
     name: "Lungs",
+    watch: [
+      { name: "Khan Academy — The lungs and pulmonary system", url: "https://www.khanacademy.org/science/health-and-medicine/human-anatomy-and-physiology/lung-introduction/v/the-lungs-and-pulmonary-system", note: "Video lesson introducing the lungs and breathing." },
+      { name: "KidsHealth — How the Lungs & Respiratory System Work", url: "https://kidshealth.org/en/kids/rsmovie.html", note: "Animated video for kids on breathing and the lungs." }
+    ],
     emoji: "🫁",
     overview: {
       location: "Inside the chest (thoracic cavity), one on each side of the heart, protected by the rib cage. The right lung has three lobes; the left has two (leaving room for the heart).",
@@ -214,6 +229,10 @@ const ORGANS = [
   {
     id: "kidney",
     name: "Kidneys",
+    watch: [
+      { name: "Khan Academy — The kidney and nephron", url: "https://www.khanacademy.org/science/biology/human-biology/kidney-nephron/v/the-kidney-and-nephron", note: "Video lesson on how nephrons filter the blood." },
+      { name: "KidsHealth — How the Urinary System Works", url: "https://kidshealth.org/en/kids/usmovie.html", note: "Animated video for kids on the kidneys and urinary system." }
+    ],
     emoji: "🫘",
     overview: {
       location: "Two bean-shaped organs in the back of the abdomen, one on each side of the spine, just below the rib cage. Each is about the size of a fist.",
@@ -274,6 +293,10 @@ const ORGANS = [
   {
     id: "liver",
     name: "Liver",
+    watch: [
+      { name: "Khan Academy — Liver", url: "https://www.khanacademy.org/science/health-and-medicine/human-anatomy-and-physiology/gastrointestinal-system-introduction/v/liver", note: "Video lesson on the liver and its many jobs." },
+      { name: "Khan Academy — Biliary tree", url: "https://www.khanacademy.org/science/health-and-medicine/human-anatomy-and-physiology/gastrointestinal-system-introduction/v/biliary-tree", note: "Video on bile production and the biliary system." }
+    ],
     emoji: "🟤",
     overview: {
       location: "Upper right side of the abdomen, just below the diaphragm and above the stomach. It is the largest internal organ and the largest gland in the body, weighing about 3 pounds.",
@@ -333,6 +356,10 @@ const ORGANS = [
   {
     id: "stomach",
     name: "Stomach",
+    watch: [
+      { name: "Khan Academy — Stomach", url: "https://www.khanacademy.org/science/health-and-medicine/gastro-intestinal-system/gastrointestinal-intro/v/stomach", note: "Video lesson on the stomach's role in digestion." },
+      { name: "KidsHealth — How the Digestive System Works", url: "https://kidshealth.org/en/kids/dsmovie.html", note: "Animated video for kids on digestion." }
+    ],
     emoji: "🍽",
     overview: {
       location: "Upper left side of the abdomen, just below the diaphragm. It sits between the esophagus (the tube from the throat) and the small intestine.",
@@ -393,6 +420,10 @@ const ORGANS = [
   {
     id: "pancreas",
     name: "Pancreas",
+    watch: [
+      { name: "Khan Academy — Pancreas: insulin & glucagon", url: "https://www.khanacademy.org/science/how-does-the-human-body-work/x0fe8768432761c62:chemical-coordination-and-integration/x0fe8768432761c62:adrenal-and-pancreas/v/pancreas-insulin-glucagon", note: "Video on how the pancreas controls blood sugar." },
+      { name: "Khan Academy — Treating type 1 diabetes", url: "https://www.khanacademy.org/science/health-and-medicine/endocrine-system-diseases/diabetes/v/treating-type-i-diabetes", note: "Video connecting the pancreas to type 1 diabetes." }
+    ],
     emoji: "🧪",
     overview: {
       location: "Deep in the abdomen, behind the stomach, stretching horizontally across the back of the belly. It is a long, flat gland about six inches long.",
@@ -452,6 +483,10 @@ const ORGANS = [
   {
     id: "eye",
     name: "Eye",
+    watch: [
+      { name: "Khan Academy — The structure of the eye", url: "https://www.khanacademy.org/test-prep/mcat/processing-the-environment/sight/v/vision-structure-of-the-eye", note: "Video lesson on eye anatomy and how vision works." },
+      { name: "KidsHealth — How Do the Eyes Work?", url: "https://kidshealth.org/en/kids/eyes-movie.html", note: "Animated video for kids on how we see." }
+    ],
     emoji: "👁",
     overview: {
       location: "Set within bony sockets (orbits) in the skull, one on each side of the nose, protected by the eyelids, lashes, and surrounding bone. Each eyeball is about an inch across.",
@@ -512,6 +547,10 @@ const ORGANS = [
   {
     id: "skin",
     name: "Skin",
+    watch: [
+      { name: "Khan Academy — What is skin?", url: "https://www.khanacademy.org/science/health-and-medicine/human-anatomy-and-physiology/integumentary-system-introduction/v/what-is-skin", note: "Video lesson on the skin and the epidermis." },
+      { name: "KidsHealth — How Does the Skin Work?", url: "https://kidshealth.org/en/kids/skin-movie.html", note: "Animated video for kids on the layers of skin." }
+    ],
     emoji: "🖐",
     overview: {
       location: "Covering the entire outside of the body — it is the body's outer layer. Skin is the body's largest organ, with a surface area of about 20 square feet in an adult.",
@@ -573,6 +612,10 @@ const ORGANS = [
   {
     id: "small-intestine",
     name: "Small Intestine",
+    watch: [
+      { name: "Khan Academy — Small intestine 3: Absorption", url: "https://www.khanacademy.org/science/health-and-medicine/gastro-intestinal-system/gastrointestinal-intro/v/small-intestine-part-3-absorption", note: "Video on nutrient absorption and villi." },
+      { name: "KidsHealth — How the Digestive System Works", url: "https://kidshealth.org/en/kids/dsmovie.html", note: "Animated video for kids covering the small intestine." }
+    ],
     emoji: "🦠",
     overview: {
       location: "Coiled in the center of the abdomen, below the stomach. Despite the name 'small,' it is actually very long — about 20 feet — but it is called 'small' because it is narrow compared to the large intestine.",
@@ -633,6 +676,10 @@ const ORGANS = [
   {
     id: "large-intestine",
     name: "Large Intestine",
+    watch: [
+      { name: "Khan Academy — Colon, rectum, and anus", url: "https://www.khanacademy.org/test-prep/mcat/organ-systems/the-gastrointestinal-system/v/colon-rectum-anus", note: "Video lesson on the large intestine and water absorption." },
+      { name: "KidsHealth — How the Digestive System Works", url: "https://kidshealth.org/en/kids/dsmovie.html", note: "Animated video for kids covering the large intestine." }
+    ],
     emoji: "📦",
     overview: {
       location: "Frames the abdomen, surrounding the coiled small intestine like a border. It runs up the right side, across the top, and down the left side of the belly. It is about 5 feet long but wider than the small intestine — which is why it is called 'large.'",
