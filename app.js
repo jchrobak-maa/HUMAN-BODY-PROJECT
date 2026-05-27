@@ -339,6 +339,9 @@
     var all = readJSON(NOTES_KEY, {});
     return all[organId] || [];
   }
+  function getSectionNotes(organId, sectionKey) {
+    return getOrganNotes(organId).filter(function (n) { return n.sectionKey === sectionKey; });
+  }
   function addOrganNote(organId, entry) {
     var all = readJSON(NOTES_KEY, {});
     if (!all[organId]) all[organId] = [];
@@ -356,91 +359,118 @@
       .catch(function (e) { return { ok: false, reason: e.message }; });
   }
 
-  function notesSection(o) {
-    var wrap = el("section", { class: "section", "aria-label": "My notes" });
-    wrap.innerHTML = sectionTitle("My notes");
+  // Guiding question shown above each section's note box.
+  function notePrompt(key, o) {
+    switch (key) {
+      case "overview":    return "In your own words, what is the main job of the " + o.name + " — and why does your body need it?";
+      case "anatomy":     return "Pick one part you clicked on the diagram. Name it and explain what it does.";
+      case "connections": return o.analysisPrompt;
+      case "disease":     return "Explain " + o.disease.name + " in your own words: name one cause and one way it can be prevented or treated.";
+      case "takeaway":    return "What is the single most important thing you learned about the " + o.name + "?";
+      default:            return "What did you notice in this section?";
+    }
+  }
 
+  // One identity bar per page; every note gets tagged with this name + class code.
+  function identityBar() {
     var id = getIdentity();
-    var card = el("div", { class: "card notes" });
-
-    var connected = !!(NOTES_CFG.endpoint || "").trim();
-    card.innerHTML =
-      '<p class="notes__lead">Write what you learned about the <strong>' + esc(o.name) +
-        '</strong>. Your notes save on this device' +
-        (connected ? ' and are sent to your class notebook.' : '. (Class notebook not connected yet.)') + '</p>' +
-      '<div class="notes__id">' +
-        '<label class="notes__field"><span>Your name</span>' +
-          '<input type="text" class="notes__name" autocomplete="name" placeholder="First name" value="' + esc(id.name) + '"></label>' +
-        '<label class="notes__field"><span>Class code</span>' +
-          '<input type="text" class="notes__code" placeholder="e.g. BIO-3" value="' + esc(id.classCode) + '"></label>' +
+    var bar = el("section", { class: "card identitybar", "aria-label": "Your notebook details" });
+    bar.innerHTML =
+      '<div class="identitybar__main">' +
+        '<span class="identitybar__tag">📓 Your notebook</span>' +
+        '<label class="identitybar__field"><span>Name</span>' +
+          '<input type="text" class="id-name" autocomplete="name" placeholder="First name" value="' + esc(id.name) + '"></label>' +
+        '<label class="identitybar__field"><span>Class code</span>' +
+          '<input type="text" class="id-code" placeholder="e.g. BIO-3" value="' + esc(id.classCode) + '"></label>' +
       '</div>' +
-      '<label class="notes__field notes__field--full"><span>Note about the ' + esc(o.name) + '</span>' +
-        '<textarea class="notes__text" rows="4" placeholder="Type your note here..."></textarea></label>' +
-      '<div class="notes__actions">' +
-        '<button type="button" class="notes__save">Save note</button>' +
-        '<span class="notes__status" role="status" aria-live="polite"></span>' +
-      '</div>' +
-      '<div class="notes__saved"></div>';
+      '<p class="identitybar__hint">Fill this in once. Every note you save below is tagged with your name and class code.</p>';
+    var nameEl = bar.querySelector(".id-name");
+    var codeEl = bar.querySelector(".id-code");
+    function persist() { saveIdentity({ name: nameEl.value.trim(), classCode: codeEl.value.trim() }); }
+    nameEl.addEventListener("change", persist);
+    codeEl.addEventListener("change", persist);
+    return bar;
+  }
 
-    var nameEl = card.querySelector(".notes__name");
-    var codeEl = card.querySelector(".notes__code");
-    var textEl = card.querySelector(".notes__text");
-    var saveEl = card.querySelector(".notes__save");
-    var statusEl = card.querySelector(".notes__status");
-    var savedEl = card.querySelector(".notes__saved");
+  // A compact note box attached to one content section, with a guiding prompt.
+  function noteCatcher(o, sectionKey, sectionLabel) {
+    var prompt = notePrompt(sectionKey, o);
+    var box = el("div", { class: "card notecatcher" });
+    box.innerHTML =
+      '<div class="notecatcher__head"><span class="notecatcher__pen" aria-hidden="true">✎</span>' +
+        '<span class="notecatcher__label">Note · ' + esc(sectionLabel) + "</span></div>" +
+      '<p class="notecatcher__prompt">' + esc(prompt) + "</p>" +
+      '<textarea class="notecatcher__text" rows="2" placeholder="Type your answer…"></textarea>' +
+      '<div class="notecatcher__actions">' +
+        '<button type="button" class="notecatcher__save">Save note</button>' +
+        '<span class="notecatcher__status" role="status" aria-live="polite"></span>' +
+      "</div>" +
+      '<ul class="notecatcher__saved"></ul>';
 
-    function persistIdentity() {
-      saveIdentity({ name: nameEl.value.trim(), classCode: codeEl.value.trim() });
-    }
-    nameEl.addEventListener("change", persistIdentity);
-    codeEl.addEventListener("change", persistIdentity);
-
-    function renderSaved() {
-      var notes = getOrganNotes(o.id);
-      if (!notes.length) { savedEl.innerHTML = ""; return; }
-      var rows = notes.slice().reverse().map(function (n) {
-        var when = new Date(n.ts).toLocaleString();
-        var sent = n.sent ? '<span class="notes__badge notes__badge--ok">submitted</span>'
-                          : '<span class="notes__badge">on this device</span>';
-        return '<li class="notes__item"><div class="notes__item-meta">' + esc(when) + " " + sent +
-          '</div><div class="notes__item-text">' + esc(n.note) + "</div></li>";
-      }).join("");
-      savedEl.innerHTML = '<h3 class="notes__saved-title">Your saved notes</h3><ul class="notes__list">' + rows + "</ul>";
-    }
-    renderSaved();
+    var textEl = box.querySelector(".notecatcher__text");
+    var saveEl = box.querySelector(".notecatcher__save");
+    var statusEl = box.querySelector(".notecatcher__status");
+    var savedEl = box.querySelector(".notecatcher__saved");
 
     function setStatus(msg, kind) {
       statusEl.textContent = msg;
-      statusEl.className = "notes__status" + (kind ? " notes__status--" + kind : "");
+      statusEl.className = "notecatcher__status" + (kind ? " notecatcher__status--" + kind : "");
     }
+    function renderSaved() {
+      var notes = getSectionNotes(o.id, sectionKey);
+      if (!notes.length) { savedEl.innerHTML = ""; return; }
+      savedEl.innerHTML = notes.slice().reverse().map(function (n) {
+        var when = new Date(n.ts).toLocaleString();
+        var badge = n.sent ? '<span class="notecatcher__badge notecatcher__badge--ok">submitted</span>'
+                           : '<span class="notecatcher__badge">on this device</span>';
+        return '<li class="notecatcher__item"><span class="notecatcher__item-meta">' + esc(when) + " " + badge +
+          '</span><span class="notecatcher__item-text">' + esc(n.note) + "</span></li>";
+      }).join("");
+    }
+    renderSaved();
 
     saveEl.addEventListener("click", function () {
-      var name = nameEl.value.trim();
-      var code = codeEl.value.trim();
-      var note = textEl.value.trim();
-      if (!name) { setStatus("Please enter your name first.", "warn"); nameEl.focus(); return; }
-      if (NOTES_CFG.requireClassCode && !code) { setStatus("Please enter your class code.", "warn"); codeEl.focus(); return; }
-      if (!note) { setStatus("Write a note before saving.", "warn"); textEl.focus(); return; }
+      var id = getIdentity();
+      var nameInput = articleEl.querySelector(".id-name");
+      var codeInput = articleEl.querySelector(".id-code");
+      if (nameInput) id.name = nameInput.value.trim();
+      if (codeInput) id.classCode = codeInput.value.trim();
+      saveIdentity(id);
 
-      persistIdentity();
+      var note = textEl.value.trim();
+      if (!id.name) {
+        setStatus("Add your name at the top first.", "warn");
+        if (nameInput) { nameInput.focus(); nameInput.scrollIntoView({ block: "center" }); }
+        return;
+      }
+      if (NOTES_CFG.requireClassCode && !id.classCode) {
+        setStatus("Add your class code at the top first.", "warn");
+        if (codeInput) { codeInput.focus(); codeInput.scrollIntoView({ block: "center" }); }
+        return;
+      }
+      if (!note) { setStatus("Write something before saving.", "warn"); textEl.focus(); return; }
+
       saveEl.disabled = true;
       setStatus("Saving…");
-
-      var payload = { name: name, classCode: code, organ: o.name, organId: o.id, note: note, at: new Date().toISOString() };
+      var payload = {
+        name: id.name, classCode: id.classCode,
+        organ: o.name, organId: o.id,
+        section: sectionLabel, prompt: prompt,
+        note: note, at: new Date().toISOString()
+      };
       postNote(payload).then(function (res) {
         var sent = res.ok;
-        addOrganNote(o.id, { ts: Date.now(), note: note, sent: sent });
+        addOrganNote(o.id, { ts: Date.now(), note: note, sectionKey: sectionKey, section: sectionLabel, sent: sent });
         textEl.value = "";
         renderSaved();
         saveEl.disabled = false;
-        if (sent) setStatus("Saved and submitted to your class notebook.", "ok");
+        if (sent) setStatus("Saved & submitted.", "ok");
         else if (res.reason === "no-endpoint") setStatus("Saved on this device.", "ok");
-        else setStatus("Saved on this device (couldn't reach the class notebook).", "warn");
+        else setStatus("Saved here (couldn't reach the class notebook).", "warn");
       });
     });
 
-    wrap.appendChild(card);
-    return wrap;
+    return box;
   }
 
   /* hero -------------------------------------------------------------- */
@@ -459,20 +489,27 @@
   function renderOrgan(id) {
     const o = organById(id);
 
-    articleEl.innerHTML =
-      heroHtml(o) +
-      overviewSection(o);
+    articleEl.innerHTML = heroHtml(o);
+    articleEl.appendChild(identityBar());
+
+    articleEl.insertAdjacentHTML("beforeend", overviewSection(o));
+    articleEl.appendChild(noteCatcher(o, "overview", "Overview"));
 
     articleEl.appendChild(anatomySection(o));
+    articleEl.appendChild(noteCatcher(o, "anatomy", "Anatomy"));
+
+    articleEl.insertAdjacentHTML("beforeend", connectionsSection(o));
+    articleEl.appendChild(noteCatcher(o, "connections", "How it works with other systems"));
+
+    articleEl.insertAdjacentHTML("beforeend", diseaseSection(o));
+    articleEl.appendChild(noteCatcher(o, "disease", "Disease case study"));
 
     articleEl.insertAdjacentHTML("beforeend",
-      connectionsSection(o) +
-      diseaseSection(o) +
       factsSection(o) +
       vocabSection(o) +
       watchSection(o));
 
-    articleEl.appendChild(notesSection(o));
+    articleEl.appendChild(noteCatcher(o, "takeaway", "Big takeaway"));
 
     articleEl.insertAdjacentHTML("beforeend", sourcesSection(o));
 
