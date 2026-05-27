@@ -287,6 +287,25 @@
     "</section>";
   }
 
+  function watchSection(o) {
+    if (!o.watch || !o.watch.length) return "";
+    let cards = "";
+    o.watch.forEach(function (w) {
+      cards += '<a class="card watch__item" href="' + esc(w.url) + '" target="_blank" rel="noopener noreferrer">' +
+        '<span class="watch__play" aria-hidden="true">▶</span>' +
+        '<span class="watch__text">' +
+          '<span class="watch__name">' + esc(w.name) + "</span>" +
+          (w.note ? '<span class="watch__note">' + esc(w.note) + "</span>" : "") +
+        "</span>" +
+      "</a>";
+    });
+    return '<section class="section" aria-label="Watch and learn">' +
+      sectionTitle("Watch & learn") +
+      '<p class="watch__lead">Short videos and animations from trusted educational sources.</p>' +
+      '<div class="watch">' + cards + "</div>" +
+    "</section>";
+  }
+
   function sourcesSection(o) {
     let rows = "";
     o.sources.forEach(function (s) {
@@ -329,6 +348,7 @@
       diseaseSection(o) +
       factsSection(o) +
       vocabSection(o) +
+      watchSection(o) +
       sourcesSection(o));
 
     highlightNav(o.id);
