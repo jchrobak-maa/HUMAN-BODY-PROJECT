@@ -10,6 +10,6 @@
      endpoint: "https://script.google.com/macros/s/AKfy..../exec"
    ========================================================================= */
 window.NOTES_CONFIG = {
-  endpoint: "",          // <-- paste your Google Apps Script /exec URL here
+  endpoint: "https://script.google.com/macros/s/AKfycby9US5jCLywRJLsCBv3EPoq-zQDRvWHbUMNNgyjuvkr-Iw_sfmdnz88Hx6UA4Mz78NCkw/exec",          // <-- paste your Google Apps Script /exec URL here
   requireClassCode: true // students must enter a class/period code before saving
 };
