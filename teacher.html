@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher View — Human Body Museum</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="teacher-page">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <div class="brand">
+        <span class="brand__mark" aria-hidden="true">📓</span>
+        <div class="brand__text">
+          <span class="brand__title">Human Body Museum</span>
+          <span class="brand__subtitle">Teacher View</span>
+        </div>
+      </div>
+      <a class="teacher-back" href="index.html">← Back to the museum</a>
+    </div>
+  </header>
+
+  <main class="teacher-main">
+    <!-- key entry -->
+    <section id="auth" class="card teacher-auth" aria-label="Teacher sign-in">
+      <h1>Student notes</h1>
+      <p class="teacher-auth__lead">Enter your teacher key to load the notes students have submitted to the class notebook.</p>
+      <div class="teacher-auth__row">
+        <input id="key" type="password" class="teacher-input" placeholder="Teacher key" autocomplete="current-password" />
+        <button id="load" class="teacher-btn" type="button">Load responses</button>
+      </div>
+      <label class="teacher-check"><input type="checkbox" id="remember" /> Remember on this device</label>
+      <p id="authStatus" class="teacher-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- dashboard -->
+    <section id="dash" class="teacher-dash" hidden>
+      <div class="teacher-toolbar">
+        <input id="search" class="teacher-input" type="search" placeholder="Search student name…" />
+        <select id="classFilter" class="teacher-select" aria-label="Filter by class code"></select>
+        <select id="organFilter" class="teacher-select" aria-label="Filter by organ"></select>
+        <span id="summary" class="teacher-summary"></span>
+        <span class="teacher-toolbar__spacer"></span>
+        <button id="expand" class="teacher-btn teacher-btn--ghost" type="button">Collapse all</button>
+        <button id="refresh" class="teacher-btn teacher-btn--ghost" type="button">Refresh</button>
+        <button id="print" class="teacher-btn teacher-btn--ghost" type="button">Print</button>
+      </div>
+      <div id="students" class="teacher-students"></div>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="organs.js"></script>
+  <script src="teacher.js"></script>
+</body>
+</html>
