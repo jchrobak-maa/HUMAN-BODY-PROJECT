@@ -42,6 +42,19 @@
 
   /* ------------------------------------------------------------ NAV */
   function buildNav() {
+    var homeLi = el("li");
+    var homeBtn = el("button", { class: "organ-btn organ-btn--home", type: "button", "data-id": "home" });
+    homeBtn.innerHTML =
+      '<span class="organ-btn__emoji" aria-hidden="true">🏛️</span>' +
+      '<span class="organ-btn__name">Home</span>';
+    homeBtn.addEventListener("click", function () {
+      if (location.hash === "#home") renderHome();
+      else location.hash = "home";
+      closeNav();
+    });
+    homeLi.appendChild(homeBtn);
+    listEl.appendChild(homeLi);
+
     ORGANS.forEach(function (organ) {
       const li = el("li");
       const btn = el("button", {
@@ -485,6 +498,74 @@
     "</header>";
   }
 
+  /* ------------------------------------------------------- home */
+  function homeFeature(icon, title, text) {
+    return '<div class="card home-feature">' +
+      '<span class="home-feature__icon" aria-hidden="true">' + icon + "</span>" +
+      '<div><h3 class="home-feature__title">' + esc(title) + "</h3>" +
+      '<p class="home-feature__text">' + esc(text) + "</p></div></div>";
+  }
+
+  function renderHome() {
+    var grid = ORGANS.map(function (o) {
+      return '<a class="home-organ" href="#' + esc(o.id) + '">' +
+        '<span class="home-organ__emoji" aria-hidden="true">' + esc(o.emoji) + "</span>" +
+        '<span class="home-organ__name">' + esc(o.name) + "</span></a>";
+    }).join("");
+
+    var teacherLink = '<a href="teacher.html">Teacher view</a>';
+
+    articleEl.innerHTML =
+      '<section class="home">' +
+        '<header class="home-hero">' +
+          '<p class="home-hero__eyebrow">Welcome to the</p>' +
+          '<h1 class="home-hero__title">Human Body Museum</h1>' +
+          '<p class="home-hero__lead">A hands-on tour of the organs that keep you alive. For each organ you can explore how it is built, what it does, how it teams up with the rest of the body, and what happens when something goes wrong — and you can take notes as you learn.</p>' +
+          '<div class="home-hero__cta">' +
+            '<a class="home-cta" href="#heart">Start exploring →</a>' +
+            '<span class="home-hero__count">' + ORGANS.length + ' organ exhibits</span>' +
+          "</div>" +
+        "</header>" +
+
+        '<section class="home-block">' +
+          sectionTitle("What's inside each exhibit") +
+          '<div class="home-features">' +
+            homeFeature("🔍", "Overview", "Where the organ sits, the body system it belongs to, and why it matters.") +
+            homeFeature("🫀", "Interactive diagram", "Click the numbered parts of the organ to reveal what each structure does.") +
+            homeFeature("🔗", "System connections", "See how the organ works together with the other systems around it.") +
+            homeFeature("🩺", "Disease case study", "A real patient scenario, what's happening, and how it's prevented and treated.") +
+            homeFeature("▶", "Watch & learn", "Short, trusted videos from Khan Academy and KidsHealth — no YouTube.") +
+            homeFeature("✎", "Take notes", "Answer guided prompts in each section and save them to your class notebook.") +
+          "</div>" +
+        "</section>" +
+
+        '<section class="home-block">' +
+          sectionTitle("Pick an organ to begin") +
+          '<div class="home-grid">' + grid + "</div>" +
+        "</section>" +
+
+        '<section class="home-block">' +
+          '<div class="home-audience">' +
+            '<div class="card home-audience__col">' +
+              '<h3 class="home-audience__title">For students</h3>' +
+              "<p>Choose any organ, click around its diagram, watch a video, and answer the short prompts as you go. Your notes are saved so you can review them later — and your teacher can see them too.</p>" +
+            "</div>" +
+            '<div class="card home-audience__col">' +
+              '<h3 class="home-audience__title">For teachers</h3>' +
+              "<p>Every note students save flows into one place. Open the " + teacherLink +
+              " to read all responses grouped by student, filter by class, and print them.</p>" +
+            "</div>" +
+          "</div>" +
+        "</section>" +
+      "</section>";
+
+    highlightNav("home");
+    document.title = "Human Body Museum — Explore the organs of the human body";
+    mainEl.scrollTop = 0;
+    window.scrollTo({ top: 0, behavior: "auto" });
+    mainEl.focus({ preventScroll: true });
+  }
+
   /* ------------------------------------------------------- render */
   function renderOrgan(id) {
     const o = organById(id);
@@ -543,13 +624,14 @@
   });
 
   /* routing ----------------------------------------------------------- */
-  function currentId() {
-    const id = (location.hash || "").replace(/^#/, "");
-    return organById(id).id;
+  function route() {
+    const key = (location.hash || "").replace(/^#/, "");
+    if (!key || key === "home") { renderHome(); return; }
+    renderOrgan(organById(key).id);
   }
-  window.addEventListener("hashchange", function () { renderOrgan(currentId()); });
+  window.addEventListener("hashchange", route);
 
   /* boot -------------------------------------------------------------- */
   buildNav();
-  renderOrgan(currentId());
+  route();
 })();
