@@ -441,6 +441,54 @@ a { color: var(--teal); }
 .watch__name { font-weight: 600; color: var(--ink); font-size: 15px; }
 .watch__note { font-size: 13px; color: var(--ink-faint); margin-top: 2px; }
 
+/* ----------------------------------------------------- STUDENT NOTES */
+.notes { padding: 22px 24px; }
+.notes__lead { margin: 0 0 16px; color: var(--ink-soft); font-size: 15px; }
+.notes__id { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.notes__field { display: flex; flex-direction: column; gap: 5px; }
+.notes__field--full { margin-bottom: 4px; }
+.notes__field > span { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--teal); font-weight: 700; }
+.notes__field input,
+.notes__field textarea {
+  font: inherit;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  width: 100%;
+  resize: vertical;
+}
+.notes__field input:focus,
+.notes__field textarea:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-soft); }
+.notes__actions { display: flex; align-items: center; gap: 14px; margin-top: 8px; flex-wrap: wrap; }
+.notes__save {
+  font: inherit; font-weight: 600;
+  background: var(--teal); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  padding: 10px 22px; cursor: pointer;
+  transition: background .15s, opacity .15s;
+}
+.notes__save:hover { background: #265b5e; }
+.notes__save:disabled { opacity: .6; cursor: default; }
+.notes__status { font-size: 14px; color: var(--ink-faint); }
+.notes__status--ok { color: var(--teal); font-weight: 600; }
+.notes__status--warn { color: var(--accent); font-weight: 600; }
+
+.notes__saved { margin-top: 20px; }
+.notes__saved-title {
+  font-family: var(--sans); font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-faint); font-weight: 700; margin: 0 0 10px;
+}
+.notes__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.notes__item { border-left: 3px solid var(--teal); background: var(--teal-soft); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 10px 14px; }
+.notes__item-meta { font-size: 12px; color: var(--ink-faint); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+.notes__item-text { font-size: 14.5px; color: var(--ink); white-space: pre-wrap; }
+.notes__badge { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: var(--line); color: var(--ink-soft); }
+.notes__badge--ok { background: #d7ebe7; color: var(--teal); }
+
+@media (max-width: 520px) { .notes__id { grid-template-columns: 1fr; } }
+
 .sources { display: flex; flex-direction: column; gap: 8px; }
 .source {
   display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px;

@@ -321,6 +321,128 @@
     "</section>";
   }
 
+  /* ----------------------------------------------------- STUDENT NOTES */
+  var NOTES_CFG = window.NOTES_CONFIG || { endpoint: "", requireClassCode: true };
+  var ID_KEY = "hbm_identity";
+  var NOTES_KEY = "hbm_notes";
+
+  function readJSON(key, fallback) {
+    try { return JSON.parse(localStorage.getItem(key)) || fallback; }
+    catch (e) { return fallback; }
+  }
+  function writeJSON(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+  }
+  function getIdentity() { return readJSON(ID_KEY, { name: "", classCode: "" }); }
+  function saveIdentity(id) { writeJSON(ID_KEY, id); }
+  function getOrganNotes(organId) {
+    var all = readJSON(NOTES_KEY, {});
+    return all[organId] || [];
+  }
+  function addOrganNote(organId, entry) {
+    var all = readJSON(NOTES_KEY, {});
+    if (!all[organId]) all[organId] = [];
+    all[organId].push(entry);
+    writeJSON(NOTES_KEY, all);
+  }
+
+  function postNote(payload) {
+    var endpoint = (NOTES_CFG.endpoint || "").trim();
+    if (!endpoint) return Promise.resolve({ ok: false, reason: "no-endpoint" });
+    // text/plain (string body) keeps it a "simple request" and skips the CORS
+    // preflight that Apps Script can't answer; no-cors lets the write succeed.
+    return fetch(endpoint, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) })
+      .then(function () { return { ok: true }; })
+      .catch(function (e) { return { ok: false, reason: e.message }; });
+  }
+
+  function notesSection(o) {
+    var wrap = el("section", { class: "section", "aria-label": "My notes" });
+    wrap.innerHTML = sectionTitle("My notes");
+
+    var id = getIdentity();
+    var card = el("div", { class: "card notes" });
+
+    var connected = !!(NOTES_CFG.endpoint || "").trim();
+    card.innerHTML =
+      '<p class="notes__lead">Write what you learned about the <strong>' + esc(o.name) +
+        '</strong>. Your notes save on this device' +
+        (connected ? ' and are sent to your class notebook.' : '. (Class notebook not connected yet.)') + '</p>' +
+      '<div class="notes__id">' +
+        '<label class="notes__field"><span>Your name</span>' +
+          '<input type="text" class="notes__name" autocomplete="name" placeholder="First name" value="' + esc(id.name) + '"></label>' +
+        '<label class="notes__field"><span>Class code</span>' +
+          '<input type="text" class="notes__code" placeholder="e.g. BIO-3" value="' + esc(id.classCode) + '"></label>' +
+      '</div>' +
+      '<label class="notes__field notes__field--full"><span>Note about the ' + esc(o.name) + '</span>' +
+        '<textarea class="notes__text" rows="4" placeholder="Type your note here..."></textarea></label>' +
+      '<div class="notes__actions">' +
+        '<button type="button" class="notes__save">Save note</button>' +
+        '<span class="notes__status" role="status" aria-live="polite"></span>' +
+      '</div>' +
+      '<div class="notes__saved"></div>';
+
+    var nameEl = card.querySelector(".notes__name");
+    var codeEl = card.querySelector(".notes__code");
+    var textEl = card.querySelector(".notes__text");
+    var saveEl = card.querySelector(".notes__save");
+    var statusEl = card.querySelector(".notes__status");
+    var savedEl = card.querySelector(".notes__saved");
+
+    function persistIdentity() {
+      saveIdentity({ name: nameEl.value.trim(), classCode: codeEl.value.trim() });
+    }
+    nameEl.addEventListener("change", persistIdentity);
+    codeEl.addEventListener("change", persistIdentity);
+
+    function renderSaved() {
+      var notes = getOrganNotes(o.id);
+      if (!notes.length) { savedEl.innerHTML = ""; return; }
+      var rows = notes.slice().reverse().map(function (n) {
+        var when = new Date(n.ts).toLocaleString();
+        var sent = n.sent ? '<span class="notes__badge notes__badge--ok">submitted</span>'
+                          : '<span class="notes__badge">on this device</span>';
+        return '<li class="notes__item"><div class="notes__item-meta">' + esc(when) + " " + sent +
+          '</div><div class="notes__item-text">' + esc(n.note) + "</div></li>";
+      }).join("");
+      savedEl.innerHTML = '<h3 class="notes__saved-title">Your saved notes</h3><ul class="notes__list">' + rows + "</ul>";
+    }
+    renderSaved();
+
+    function setStatus(msg, kind) {
+      statusEl.textContent = msg;
+      statusEl.className = "notes__status" + (kind ? " notes__status--" + kind : "");
+    }
+
+    saveEl.addEventListener("click", function () {
+      var name = nameEl.value.trim();
+      var code = codeEl.value.trim();
+      var note = textEl.value.trim();
+      if (!name) { setStatus("Please enter your name first.", "warn"); nameEl.focus(); return; }
+      if (NOTES_CFG.requireClassCode && !code) { setStatus("Please enter your class code.", "warn"); codeEl.focus(); return; }
+      if (!note) { setStatus("Write a note before saving.", "warn"); textEl.focus(); return; }
+
+      persistIdentity();
+      saveEl.disabled = true;
+      setStatus("Saving…");
+
+      var payload = { name: name, classCode: code, organ: o.name, organId: o.id, note: note, at: new Date().toISOString() };
+      postNote(payload).then(function (res) {
+        var sent = res.ok;
+        addOrganNote(o.id, { ts: Date.now(), note: note, sent: sent });
+        textEl.value = "";
+        renderSaved();
+        saveEl.disabled = false;
+        if (sent) setStatus("Saved and submitted to your class notebook.", "ok");
+        else if (res.reason === "no-endpoint") setStatus("Saved on this device.", "ok");
+        else setStatus("Saved on this device (couldn't reach the class notebook).", "warn");
+      });
+    });
+
+    wrap.appendChild(card);
+    return wrap;
+  }
+
   /* hero -------------------------------------------------------------- */
   function heroHtml(o) {
     return '<header class="organ-hero">' +
@@ -348,8 +470,11 @@
       diseaseSection(o) +
       factsSection(o) +
       vocabSection(o) +
-      watchSection(o) +
-      sourcesSection(o));
+      watchSection(o));
+
+    articleEl.appendChild(notesSection(o));
+
+    articleEl.insertAdjacentHTML("beforeend", sourcesSection(o));
 
     highlightNav(o.id);
     document.title = o.name + " — Human Body Museum";
