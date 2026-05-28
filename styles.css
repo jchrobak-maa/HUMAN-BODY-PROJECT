@@ -265,6 +265,58 @@ a { color: var(--teal); }
   box-shadow: var(--shadow);
 }
 
+/* section header with a Listen button */
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.section-head .section__title { margin-bottom: 0; }
+
+/* read-aloud button */
+.listen-btn {
+  flex: none;
+  display: inline-flex; align-items: center; gap: 7px;
+  font: inherit; font-size: 13px; font-weight: 600;
+  color: var(--teal); background: var(--teal-soft);
+  border: 1px solid #cfe0df; border-radius: 999px;
+  padding: 6px 14px; cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.listen-btn:hover { background: #d2e6e4; }
+.listen-btn__icon { font-size: 14px; line-height: 1; }
+.listen-btn.is-speaking { background: var(--teal); color: #fff; border-color: var(--teal); }
+
+/* glossary term + tooltip */
+.glossary {
+  position: relative;
+  border-bottom: 2px dotted var(--gold);
+  cursor: help;
+  color: inherit;
+  font-weight: 600;
+}
+.glossary:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 2px; }
+.glossary__tip {
+  position: absolute;
+  left: 50%; bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  width: max-content; max-width: 260px;
+  background: var(--ink); color: #fff;
+  font-size: 13px; font-weight: 400; line-height: 1.45;
+  text-align: left;
+  padding: 9px 12px; border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+  opacity: 0; visibility: hidden;
+  transition: opacity .12s;
+  z-index: 30; pointer-events: none;
+}
+.glossary__tip b { color: #ffd9dc; }
+.glossary__tip::after {
+  content: ""; position: absolute; top: 100%; left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent; border-top-color: var(--ink);
+}
+.glossary:hover .glossary__tip,
+.glossary:focus .glossary__tip,
+.glossary:focus-within .glossary__tip,
+.glossary.is-open .glossary__tip { opacity: 1; visibility: visible; }
+
 /* Overview grid */
 .overview-grid {
   display: grid;

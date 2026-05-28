@@ -40,6 +40,96 @@
     return ORGANS.find(function (o) { return o.id === id; }) || ORGANS[0];
   }
 
+  /* --------------------------------------------------- read-aloud (TTS) */
+  var TTS = (function () {
+    var synth = window.speechSynthesis;
+    var supported = !!(synth && window.SpeechSynthesisUtterance);
+    var active = null;
+    function label(btn, speaking) {
+      var l = btn.querySelector(".listen-btn__label");
+      if (l) l.textContent = speaking ? "Stop" : (btn.getAttribute("data-label") || "Listen");
+      btn.classList.toggle("is-speaking", speaking);
+      btn.setAttribute("aria-pressed", speaking ? "true" : "false");
+    }
+    function stop() {
+      if (synth) synth.cancel();
+      if (active) { label(active, false); active = null; }
+    }
+    function speak(btn) {
+      if (!supported) return;
+      if (active === btn) { stop(); return; }
+      stop();
+      var text = btn.getAttribute("data-listen") || "";
+      if (!text) return;
+      var u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.95; u.lang = "en-US";
+      u.onend = u.onerror = function () { if (active === btn) { label(btn, false); active = null; } };
+      active = btn; label(btn, true);
+      synth.speak(u);
+    }
+    return { speak: speak, stop: stop, supported: supported };
+  })();
+
+  function listenButton(text, lbl) {
+    if (!TTS.supported || !text) return "";
+    lbl = lbl || "Listen";
+    return '<button type="button" class="listen-btn" aria-pressed="false" data-label="' + esc(lbl) + '" data-listen="' + esc(text) + '">' +
+      '<span class="listen-btn__icon" aria-hidden="true">🔊</span>' +
+      '<span class="listen-btn__label">' + esc(lbl) + "</span></button>";
+  }
+
+  /* --------------------------------------------------- glossary tooltips */
+  function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+  // After a page renders, wrap the first occurrence of each vocab term found in
+  // the prose with a hover/tap glossary tooltip. Each term is highlighted once.
+  function applyGlossary(root, vocab) {
+    if (!vocab || !vocab.length) return;
+    var sel = ".overview-card__text, .takeaway p, .connection__detail, .disease__cell p, .disease__scenario, .reading__p";
+    var nodes = root.querySelectorAll(sel);
+    if (!nodes.length) return;
+    var terms = vocab.slice().sort(function (a, b) { return b.term.length - a.term.length; });
+    var used = {};
+    terms.forEach(function (v) {
+      var key = v.term.toLowerCase();
+      var re = new RegExp("\\b" + escapeRegex(v.term) + "\\b", "i");
+      for (var i = 0; i < nodes.length; i++) {
+        if (used[key]) break;
+        if (wrapFirst(nodes[i], re, v)) used[key] = true;
+      }
+    });
+  }
+  function wrapFirst(container, re, v) {
+    var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
+    var tn;
+    while ((tn = walker.nextNode())) {
+      if (tn.parentNode && tn.parentNode.closest && tn.parentNode.closest(".glossary")) continue;
+      var m = re.exec(tn.nodeValue);
+      if (!m) continue;
+      var before = tn.nodeValue.slice(0, m.index);
+      var hit = tn.nodeValue.slice(m.index, m.index + m[0].length);
+      var after = tn.nodeValue.slice(m.index + m[0].length);
+      var span = document.createElement("span");
+      span.className = "glossary";
+      span.setAttribute("tabindex", "0");
+      span.setAttribute("role", "button");
+      span.setAttribute("aria-label", v.term + ": " + v.definition);
+      span.textContent = hit;
+      var tip = document.createElement("span");
+      tip.className = "glossary__tip";
+      tip.setAttribute("aria-hidden", "true");
+      tip.innerHTML = "<b>" + esc(v.term) + "</b> — " + esc(v.definition);
+      span.appendChild(tip);
+      var frag = document.createDocumentFragment();
+      if (before) frag.appendChild(document.createTextNode(before));
+      frag.appendChild(span);
+      if (after) frag.appendChild(document.createTextNode(after));
+      tn.parentNode.replaceChild(frag, tn);
+      return true;
+    }
+    return false;
+  }
+
   /* ------------------------------------------------------------ NAV */
   function buildNav() {
     var homeLi = el("li");
@@ -87,11 +177,20 @@
   function sectionTitle(text) {
     return '<h2 class="section__title">' + esc(text) + "</h2>";
   }
+  function sectionHead(title, readText) {
+    return '<div class="section-head">' +
+      '<h2 class="section__title">' + esc(title) + "</h2>" +
+      listenButton(readText, "Listen") +
+    "</div>";
+  }
 
   function overviewSection(o) {
     const ov = o.overview;
+    var read = "Overview of the " + o.name + ". Location: " + ov.location +
+      " Body system: " + ov.bodySystem + " Main function: " + ov.mainFunction +
+      " Why it matters: " + ov.whyItMatters;
     return '<section class="section" aria-label="Overview">' +
-      sectionTitle("Overview") +
+      sectionHead("Overview", read) +
       '<div class="overview-grid">' +
         overviewCard("Location", ov.location) +
         overviewCard("Body system", ov.bodySystem) +
@@ -244,8 +343,11 @@
   /* disease ----------------------------------------------------------- */
   function diseaseSection(o) {
     const d = o.disease;
+    var read = d.name + ". Scenario: " + d.scenario + " What's happening: " + d.whatsHappening +
+      " Symptoms: " + d.symptoms + " Causes: " + d.causes + " Prevention: " + d.prevention +
+      " Treatment: " + d.treatment + " " + d.publicHealthMessage;
     return '<section class="section" aria-label="Disease case study">' +
-      sectionTitle("Disease case study") +
+      sectionHead("Disease case study", read) +
       '<div class="card disease">' +
         '<div class="disease__header">' +
           '<div class="disease__eyebrow">Case study</div>' +
@@ -507,6 +609,7 @@
   }
 
   function renderHome() {
+    TTS.stop();
     var grid = ORGANS.map(function (o) {
       return '<a class="home-organ" href="#' + esc(o.id) + '">' +
         '<span class="home-organ__emoji" aria-hidden="true">' + esc(o.emoji) + "</span>" +
@@ -569,6 +672,7 @@
   /* ------------------------------------------------------- render */
   function renderOrgan(id) {
     const o = organById(id);
+    TTS.stop();
 
     articleEl.innerHTML = heroHtml(o);
     articleEl.appendChild(identityBar());
@@ -593,6 +697,8 @@
     articleEl.appendChild(noteCatcher(o, "takeaway", "Big takeaway"));
 
     articleEl.insertAdjacentHTML("beforeend", sourcesSection(o));
+
+    applyGlossary(articleEl, o.vocab);
 
     highlightNav(o.id);
     document.title = o.name + " — Human Body Museum";
@@ -630,6 +736,20 @@
     renderOrgan(organById(key).id);
   }
   window.addEventListener("hashchange", route);
+
+  /* read-aloud + glossary interactions (event delegation) ------------- */
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest && e.target.closest(".listen-btn");
+    if (btn) { e.preventDefault(); TTS.speak(btn); return; }
+    var g = e.target.closest && e.target.closest(".glossary");
+    document.querySelectorAll(".glossary.is-open").forEach(function (x) { if (x !== g) x.classList.remove("is-open"); });
+    if (g) g.classList.toggle("is-open");
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") { TTS.stop(); document.querySelectorAll(".glossary.is-open").forEach(function (x) { x.classList.remove("is-open"); }); }
+    var g = e.target.closest && e.target.closest(".glossary");
+    if (g && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); g.classList.toggle("is-open"); }
+  });
 
   /* boot -------------------------------------------------------------- */
   buildNav();
