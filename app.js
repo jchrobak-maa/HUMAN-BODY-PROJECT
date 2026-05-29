@@ -631,11 +631,12 @@
   function heroHtml(o) {
     return '<header class="organ-hero">' +
       '<span class="organ-hero__emoji" aria-hidden="true">' + esc(o.emoji) + "</span>" +
-      "<div>" +
+      '<div class="organ-hero__text">' +
         '<div class="organ-hero__eyebrow">Exhibit</div>' +
         "<h1>" + esc(o.name) + "</h1>" +
         '<p class="organ-hero__system">' + esc(o.overview.bodySystem) + "</p>" +
       "</div>" +
+      '<a class="organ-hero__print" href="packet.html#' + esc(o.id) + '" target="_blank" rel="noopener">🖨 Print worksheet</a>' +
     "</header>";
   }
 

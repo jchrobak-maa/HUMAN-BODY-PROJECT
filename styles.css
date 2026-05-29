@@ -236,6 +236,16 @@ a { color: var(--teal); }
 }
 .organ-hero h1 { font-size: clamp(34px, 5vw, 48px); font-weight: 700; }
 .organ-hero__system { color: var(--ink-soft); margin-top: 6px; font-size: 15px; }
+.organ-hero__text { flex: 1 1 auto; min-width: 0; }
+.organ-hero__print {
+  flex: none; align-self: flex-start;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600; text-decoration: none;
+  color: var(--teal); background: var(--teal-soft);
+  border: 1px solid #cfe0df; border-radius: 999px;
+  padding: 7px 14px;
+}
+.organ-hero__print:hover { background: #d2e6e4; }
 
 /* Section scaffolding */
 .section { margin: 0 0 30px; scroll-margin-top: calc(var(--header-h) + 12px); }
@@ -709,6 +719,46 @@ a { color: var(--teal); }
   .t-student, .teacher-students { box-shadow: none; }
   .t-student { break-inside: avoid; }
   .t-student__body { display: block !important; }
+}
+
+/* ----------------------------------------------------- PRINTABLE PACKET */
+.packet-page { background: #f4f1ea; }
+.packet-toolbar { position: sticky; top: 0; z-index: 10; background: var(--bg-panel); border-bottom: 1px solid var(--line); box-shadow: var(--shadow); }
+.packet-toolbar__inner { max-width: 880px; margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.packet-toolbar__title { font-family: var(--serif); font-weight: 600; font-size: 17px; }
+.packet-toolbar__pick { font-size: 13px; color: var(--ink-soft); display: flex; align-items: center; gap: 6px; }
+.packet-toolbar__spacer { flex: 1 1 auto; }
+.packet-toolbar__hint { max-width: 880px; margin: 0 auto; padding: 0 20px 12px; font-size: 12.5px; color: var(--ink-faint); }
+
+.packet-root { max-width: 880px; margin: 0 auto; padding: 24px 20px 60px; }
+.ws { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 30px 34px; margin-bottom: 24px; color: #1a1a1a; }
+.ws-head { border-bottom: 2px solid #1a1a1a; padding-bottom: 10px; margin-bottom: 16px; }
+.ws-title { font-family: var(--serif); font-size: 28px; font-weight: 700; margin: 0; }
+.ws-sys { margin: 4px 0 0; color: #555; font-size: 14px; }
+.ws-id { margin-top: 12px; display: flex; gap: 24px; flex-wrap: wrap; font-size: 14px; color: #333; }
+.ws-block { margin: 20px 0; }
+.ws-h2 { font-family: var(--serif); font-size: 19px; font-weight: 600; margin: 0 0 8px; border-bottom: 1px solid #bbb; padding-bottom: 4px; }
+.ws-h3 { font-family: var(--serif); font-size: 15px; font-weight: 600; margin: 12px 0 4px; }
+.ws-dl { margin: 0; }
+.ws-dl dt { font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: #444; margin-top: 8px; }
+.ws-dl dd { margin: 2px 0 0; font-size: 14.5px; line-height: 1.5; }
+.ws-ul { margin: 6px 0; padding-left: 20px; }
+.ws-ul li { font-size: 14.5px; line-height: 1.55; margin-bottom: 4px; }
+.ws-vocab li { margin-bottom: 6px; }
+.ws-scn { font-size: 14.5px; background: #f4f1ea; padding: 8px 12px; border-radius: 6px; }
+.ws-read { font-size: 14.5px; line-height: 1.6; margin: 4px 0; }
+.ws-prompt { font-size: 14px; font-style: italic; color: #333; margin: 12px 0 6px; }
+.ws-lines { margin: 0 0 6px; }
+.ws-line { display: block; border-bottom: 1px solid #999; height: 1.7em; }
+
+@media print {
+  .packet-toolbar { display: none !important; }
+  .packet-page { background: #fff; }
+  .packet-root { max-width: none; margin: 0; padding: 0; }
+  .ws { border: none; border-radius: 0; padding: 0 8px; margin: 0; page-break-after: always; }
+  .ws:last-child { page-break-after: auto; }
+  .ws-block { page-break-inside: avoid; }
+  .ws-line { border-bottom: 1px solid #444; }
 }
 
 /* ----------------------------------------------------- FOOTER */

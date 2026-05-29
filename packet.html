@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Worksheet — Human Body Museum</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="packet-page">
+  <div class="packet-toolbar">
+    <div class="packet-toolbar__inner">
+      <span class="packet-toolbar__title">🖨 Printable worksheet</span>
+      <label class="packet-toolbar__pick">Organ
+        <select id="organPick" class="teacher-select"></select>
+      </label>
+      <button id="printBtn" class="teacher-btn" type="button">Print / Save as PDF</button>
+      <span class="packet-toolbar__spacer"></span>
+      <a class="teacher-back" href="index.html">← Back to the museum</a>
+    </div>
+    <p class="packet-toolbar__hint">Tip: choose “All organs” to print the whole packet at once. Each organ starts on a new page.</p>
+  </div>
+
+  <main id="packetRoot" class="packet-root"></main>
+
+  <script src="organs.js"></script>
+  <script src="packet.js"></script>
+</body>
+</html>
