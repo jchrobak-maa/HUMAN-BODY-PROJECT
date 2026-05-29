@@ -197,6 +197,62 @@ const FIGURES = {
     },
   },
 
+  /* ------------------------------------------------------------- EYE */
+  eye: {
+    1: {
+      viewBox: "0 0 340 190",
+      caption: "Light enters through the cornea and pupil, the lens focuses it, and it lands on the retina at the back. The optic nerve then carries the signal to the brain.",
+      svg: `<g font-family="Inter, sans-serif" font-size="11" text-anchor="middle">
+        <circle cx="165" cy="95" r="78" fill="#f3ede1" stroke="#cdbfa3" stroke-width="2.5"/>
+        <path d="M215 33 A78 78 0 0 1 215 157" fill="none" stroke="#b23a48" stroke-width="6" opacity=".85"/>
+        <text x="258" y="56" fill="#b23a48" font-weight="700">retina</text>
+        <path d="M241 95 C266 95 282 95 305 95" stroke="#b23a48" stroke-width="10" fill="none"/>
+        <text x="296" y="118" fill="#b23a48" font-weight="700">optic nerve</text>
+        <g stroke="#c08a2d" stroke-width="1.8" fill="none">
+          <line x1="22" y1="66" x2="104" y2="84"/><line x1="22" y1="95" x2="104" y2="95"/><line x1="22" y1="124" x2="104" y2="106"/>
+          <line x1="104" y1="84" x2="214" y2="95"/><line x1="104" y1="106" x2="214" y2="95"/>
+        </g>
+        <polygon points="214,95 203,90 203,100" fill="#c08a2d"/>
+        <text x="44" y="140" fill="#c08a2d" font-weight="700">light</text>
+        <path d="M86 68 C70 80 70 110 86 122" fill="#cfeaf0" stroke="#9cc6cd" stroke-width="2.5"/>
+        <text x="66" y="55" fill="#2f6f72" font-weight="700">cornea</text>
+        <line x1="93" y1="60" x2="93" y2="80" stroke="#3f6f8f" stroke-width="5"/>
+        <line x1="93" y1="110" x2="93" y2="130" stroke="#3f6f8f" stroke-width="5"/>
+        <ellipse cx="105" cy="95" rx="9" ry="22" fill="#cfe7ef" stroke="#8fb9c2" stroke-width="2"/>
+        <text x="112" y="152" fill="#2f6f72" font-weight="700">lens</text>
+      </g>`,
+    },
+  },
+
+  /* ------------------------------------------------------------ SKIN */
+  skin: {
+    1: {
+      viewBox: "0 0 340 206",
+      caption: "Skin has three layers: the epidermis is the protective barrier; the dermis holds blood vessels, nerves, glands, and hair roots; the hypodermis is fat that cushions and insulates.",
+      svg: `<g font-family="Inter, sans-serif" font-size="11">
+        <rect x="18" y="22" width="304" height="40" fill="#f0cbb4" stroke="#d6a98e" stroke-width="2"/>
+        <text x="26" y="46" fill="#7a3b32" font-weight="700">epidermis</text>
+        <rect x="18" y="62" width="304" height="92" fill="#e3a394" stroke="#cf8c7c" stroke-width="2"/>
+        <text x="26" y="80" fill="#7a3b32" font-weight="700">dermis</text>
+        <rect x="18" y="154" width="304" height="44" fill="#f2d98f" stroke="#d8bb63" stroke-width="2"/>
+        <text x="26" y="181" fill="#9a7b1e" font-weight="700">hypodermis (fat)</text>
+        <g fill="#f7e4ab" stroke="#d8bb63" stroke-width="1.5">
+          <circle cx="150" cy="182" r="11"/><circle cx="210" cy="184" r="12"/><circle cx="270" cy="182" r="11"/>
+        </g>
+        <path d="M268 10 L268 150" stroke="#7a4a2e" stroke-width="4"/>
+        <ellipse cx="268" cy="150" rx="10" ry="9" fill="#caa07f"/>
+        <text x="278" y="20" fill="#7a4a2e" font-weight="700">hair</text>
+        <circle cx="250" cy="96" r="10" fill="#f5e6c8" stroke="#d8bb63" stroke-width="1.5"/>
+        <text x="238" y="80" fill="#9a7b1e" font-weight="700" text-anchor="end">oil gland</text>
+        <path d="M120 64 C112 92 122 120 120 142" fill="none" stroke="#3f6f8f" stroke-width="3"/>
+        <circle cx="120" cy="140" r="8" fill="none" stroke="#3f6f8f" stroke-width="3"/>
+        <text x="74" y="120" fill="#3f6f8f" font-weight="700">sweat gland</text>
+        <circle cx="74" cy="92" r="8" fill="#b23a48" opacity=".8"/>
+        <text x="74" y="78" fill="#b23a48" font-weight="700" text-anchor="middle">nerve</text>
+      </g>`,
+    },
+  },
+
   /* -------------------------------------------------- LARGE INTESTINE */
   "large-intestine": {
     1: {

@@ -536,6 +536,13 @@ const ORGANS = [
   {
     id: "eye",
     name: "Eye",
+    reading: [
+      { h: "A camera made of living tissue", p: "The eye is a sensory organ that turns light into signals your brain can understand. Vision lets you move through the world, judge distances, and recognize faces. Because both eyes point forward, your brain blends their slightly different views to see in three dimensions. Each eyeball is about an inch across and is protected by the bony socket, the eyelids and lashes, and a constant wash of tears." },
+      { h: "Letting light in", p: "Light first passes through the cornea, the clear dome at the front of the eye, which begins bending and focusing it. Behind the cornea is the iris, the colored ring of muscle, and the pupil, the dark opening at its center. The iris changes the size of the pupil to control how much light gets in: in bright light it shrinks the pupil to protect the eye, and in dim light it widens the pupil to let more in. The iris also contains the pigment that gives your eyes their color." },
+      { h: "Focusing the picture", p: "Just behind the pupil sits the lens, a clear, flexible structure that fine-tunes the focus. By changing its shape, the lens bends light so that it lands sharply on the back of the eye, a process called accommodation. Together the cornea and lens act like the lens of a camera, projecting a clear image onto the light-sensitive layer at the back." },
+      { h: "Turning light into signals", p: "That light-sensitive layer is the retina. It is packed with special cells called rods and cones. Rods detect dim light and motion, which is why they matter most at night and for black-and-white vision. Cones detect color and fine detail; there are three kinds — red, green, and blue — and together they let you see the full range of colors. When light strikes these cells, they convert it into electrical signals." },
+      { h: "Sending the message to the brain", p: "The signals from the retina leave the eye through the optic nerve, a cable that carries them to the back of the brain, where they are decoded into the pictures you actually 'see.' In other words, the eye captures light, but the brain is what interprets it. The eye also adjusts automatically to different light levels and helps the body react to its surroundings — small ways it supports homeostasis." }
+    ],
     watch: [
       { name: "Khan Academy — The structure of the eye", url: "https://www.khanacademy.org/test-prep/mcat/processing-the-environment/sight/v/vision-structure-of-the-eye", note: "Video lesson on eye anatomy and how vision works." },
       { name: "KidsHealth — How Do the Eyes Work?", url: "https://kidshealth.org/en/kids/eyes-movie.html", note: "Animated video for kids on how we see." }
@@ -600,6 +607,13 @@ const ORGANS = [
   {
     id: "skin",
     name: "Skin",
+    reading: [
+      { h: "Your largest organ", p: "Skin is the body's largest organ, covering about 20 square feet in an adult. Along with hair, nails, and certain glands, it makes up the integumentary system. Even though it is thin, skin is a true organ because it is built from several kinds of tissue working together. Its main job is to be a protective barrier between your insides and the outside world." },
+      { h: "Three layers", p: "Skin has three layers. The outermost is the epidermis, a tough, waterproof barrier that constantly sheds and replaces its cells. Beneath it is the dermis, a thicker layer packed with blood vessels, nerves, hair roots, and glands. The deepest layer, the hypodermis, is made mostly of fat that cushions the body and stores energy and heat." },
+      { h: "Keeping germs out and water in", p: "The epidermis is your front line of defense. Its cells make a tough protein called keratin that waterproofs the skin and helps block bacteria, viruses, and other invaders. This barrier also keeps your body from losing too much water. When skin is cut or broken that protection is lost, which is why wounds can let in infection." },
+      { h: "Cooling, oiling, and sensing", p: "The dermis is full of working parts. Sweat glands release sweat that cools you as it evaporates, while sebaceous glands make oil that keeps skin and hair moisturized. Hair grows from hair follicles rooted in this layer. The dermis is also packed with sensory receptors — nerve endings that detect touch, pressure, temperature, and pain and send that information to the brain." },
+      { h: "Color, protection, and balance", p: "Special cells called melanocytes produce melanin, the pigment that gives skin its color and helps shield deeper cells from the sun's UV rays. Skin is also key to homeostasis: it helps regulate body temperature by sweating to cool down and by widening or narrowing blood vessels to release or hold in heat. When exposed to sunlight, skin even helps make vitamin D for healthy bones." }
+    ],
     watch: [
       { name: "Khan Academy — What is skin?", url: "https://www.khanacademy.org/science/health-and-medicine/human-anatomy-and-physiology/integumentary-system-introduction/v/what-is-skin", note: "Video lesson on the skin and the epidermis." },
       { name: "KidsHealth — How Does the Skin Work?", url: "https://kidshealth.org/en/kids/skin-movie.html", note: "Animated video for kids on the layers of skin." }
