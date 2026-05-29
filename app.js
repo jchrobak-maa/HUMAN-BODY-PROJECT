@@ -603,12 +603,23 @@
   }
   function readingRow(o, para, i) {
     var prose = el("div", { class: "reading__prose" });
+    var figs = (typeof FIGURES !== "undefined") ? FIGURES[o.id] : null;
+    var fig = figs && figs[i];
+    var figHtml = "";
+    if (fig) {
+      figHtml = '<figure class="reading__fig">' +
+        '<svg class="fig__svg" viewBox="' + esc(fig.viewBox) + '" role="img" aria-label="' + esc(fig.caption) + '">' + fig.svg + "</svg>" +
+        '<figcaption class="reading__figcap">' + esc(fig.caption) +
+          (fig.credit ? ' <span class="reading__figcredit">' + esc(fig.credit) + "</span>" : "") +
+        "</figcaption></figure>";
+    }
     prose.innerHTML =
       '<div class="reading__phead">' +
         (para.h ? '<h3 class="reading__h">' + esc(para.h) + "</h3>" : "<span></span>") +
         listenButton(para.p, "Listen") +
       "</div>" +
-      '<p class="reading__p">' + esc(para.p) + "</p>";
+      '<p class="reading__p">' + esc(para.p) + "</p>" +
+      figHtml;
     var row = el("div", { class: "reading__row" });
     row.appendChild(prose);
     row.appendChild(noteCatcher(o, "reading-" + (i + 1), "Deep dive ¶" + (i + 1),

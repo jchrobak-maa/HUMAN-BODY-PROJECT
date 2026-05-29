@@ -557,6 +557,16 @@ a { color: var(--teal); }
 .reading__phead { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; min-height: 28px; }
 .reading__h { font-family: var(--serif); font-size: 19px; font-weight: 600; color: var(--ink); }
 .reading__p { margin: 0; font-size: 16px; line-height: 1.7; color: var(--ink); }
+.reading__fig {
+  margin: 14px 0 0;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.fig__svg { display: block; width: 100%; height: auto; max-height: 220px; }
+.reading__figcap { margin: 8px 2px 0; font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+.reading__figcredit { color: var(--ink-faint); font-style: italic; }
 .reading__row .notecatcher { margin: 0; position: sticky; top: calc(var(--header-h) + 12px); }
 
 @media (max-width: 820px) {
