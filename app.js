@@ -83,9 +83,9 @@
 
   // After a page renders, wrap the first occurrence of each vocab term found in
   // the prose with a hover/tap glossary tooltip. Each term is highlighted once.
-  function applyGlossary(root, vocab) {
+  function applyGlossary(root, vocab, selector) {
     if (!vocab || !vocab.length) return;
-    var sel = ".overview-card__text, .takeaway p, .connection__detail, .disease__cell p, .disease__scenario, .reading__p";
+    var sel = selector || ".overview-card__text, .takeaway p, .connection__detail, .disease__cell p, .disease__scenario, .reading__p";
     var nodes = root.querySelectorAll(sel);
     if (!nodes.length) return;
     var terms = vocab.slice().sort(function (a, b) { return b.term.length - a.term.length; });
@@ -508,8 +508,8 @@
   }
 
   // A compact note box attached to one content section, with a guiding prompt.
-  function noteCatcher(o, sectionKey, sectionLabel) {
-    var prompt = notePrompt(sectionKey, o);
+  function noteCatcher(o, sectionKey, sectionLabel, promptOverride) {
+    var prompt = promptOverride || notePrompt(sectionKey, o);
     var box = el("div", { class: "card notecatcher" });
     box.innerHTML =
       '<div class="notecatcher__head"><span class="notecatcher__pen" aria-hidden="true">✎</span>' +
@@ -586,6 +586,34 @@
     });
 
     return box;
+  }
+
+  /* ----------------------------------------------------- in-depth reading */
+  function readingSection(o) {
+    if (!o.reading || !o.reading.length) return null;
+    var wrap = el("section", { class: "section", "aria-label": "In-depth reading" });
+    var fullText = o.reading.map(function (p) { return (p.h ? p.h + ". " : "") + p.p; }).join(" ");
+    wrap.innerHTML = sectionHead("In-depth reading", fullText) +
+      '<p class="reading__lead">Read each paragraph, then put its key idea in your own words in the box beside it. ' +
+      'Hover or tap the <span class="reading__hl">highlighted words</span> to see what they mean, or press 🔊 to hear a paragraph read aloud.</p>';
+    o.reading.forEach(function (para, i) {
+      wrap.appendChild(readingRow(o, para, i));
+    });
+    return wrap;
+  }
+  function readingRow(o, para, i) {
+    var prose = el("div", { class: "reading__prose" });
+    prose.innerHTML =
+      '<div class="reading__phead">' +
+        (para.h ? '<h3 class="reading__h">' + esc(para.h) + "</h3>" : "<span></span>") +
+        listenButton(para.p, "Listen") +
+      "</div>" +
+      '<p class="reading__p">' + esc(para.p) + "</p>";
+    var row = el("div", { class: "reading__row" });
+    row.appendChild(prose);
+    row.appendChild(noteCatcher(o, "reading-" + (i + 1), "Deep dive ¶" + (i + 1),
+      "In your own words, what is the most important idea in this paragraph?"));
+    return row;
   }
 
   /* hero -------------------------------------------------------------- */
@@ -691,14 +719,21 @@
 
     articleEl.insertAdjacentHTML("beforeend",
       factsSection(o) +
-      vocabSection(o) +
-      watchSection(o));
+      vocabSection(o));
+
+    var reading = readingSection(o);
+    if (reading) articleEl.appendChild(reading);
+
+    articleEl.insertAdjacentHTML("beforeend", watchSection(o));
 
     articleEl.appendChild(noteCatcher(o, "takeaway", "Big takeaway"));
 
     articleEl.insertAdjacentHTML("beforeend", sourcesSection(o));
 
-    applyGlossary(articleEl, o.vocab);
+    // Glossary: highlight each term once in the main prose, and (independently)
+    // once inside the reading passage so definitions are available while reading.
+    applyGlossary(articleEl, o.vocab, ".overview-card__text, .takeaway p, .connection__detail, .disease__cell p, .disease__scenario");
+    if (reading) applyGlossary(reading, o.vocab, ".reading__p");
 
     highlightNav(o.id);
     document.title = o.name + " — Human Body Museum";

@@ -22,6 +22,10 @@
      watch           array of { name, url, note }  educational VIDEO links
                      (Khan Academy + KidsHealth; no YouTube). Powers the
                      "Watch & learn" section.
+     reading         array of { h, p }  in-depth reading passage, ~9th-grade
+                     level. Each paragraph (p) gets an optional subheading (h),
+                     a per-paragraph note box, a read-aloud button, and inline
+                     glossary highlighting of vocab terms. Optional per organ.
 
    NOTE TO BUILDER (Claude Code):
    - Treat all text as VERBATIM content. Format/style it, but do not rewrite
@@ -36,6 +40,13 @@ const ORGANS = [
   {
     id: "heart",
     name: "Heart",
+    reading: [
+      { h: "A pump that never rests", p: "The heart is a muscular pump about the size of your fist, sitting just left of center in your chest. Its job sounds simple but is essential: keep blood moving in a continuous loop so that every cell receives oxygen and nutrients and gives up its waste. This constant movement is called circulation, and it never stops — the heart beats roughly 100,000 times a day, every day of your life." },
+      { h: "Four chambers, two sides", p: "The heart is divided into four chambers. The two upper chambers are the atria (each one an atrium); the two lower chambers are the ventricles. A thick wall called the septum splits the heart into a right side and a left side. The right side handles oxygen-poor blood returning from the body, and the left side handles oxygen-rich blood coming back from the lungs. Because the septum keeps the two sides separate, 'used' and 'fresh' blood never mix." },
+      { h: "One-way traffic", p: "Blood must travel in only one direction, and valves make that happen. A valve is a flap that opens to let blood through and snaps shut to stop it from flowing backward. The familiar 'lub-dub' heartbeat is the sound of these valves closing. Blood follows a fixed path: from the body to the right atrium, into the right ventricle, out to the lungs, back to the left atrium, into the left ventricle, and out to the body through the aorta, the largest artery." },
+      { h: "Arteries, veins, and the lungs", p: "Blood vessels come in two main types. An artery carries blood away from the heart, while a vein carries it back. The right ventricle pumps oxygen-poor blood a short distance to the lungs, where it picks up oxygen and drops off carbon dioxide. That refreshed blood returns to the left side, and the powerful left ventricle pushes it out to the rest of the body. The heart and lungs are partners on every single beat and breath." },
+      { h: "Keeping the body in balance", p: "Because it controls the delivery of oxygen, the heart is central to homeostasis — the body's effort to keep its internal conditions steady. When you exercise, your muscles need more oxygen, so signals from your nervous system and hormones like adrenaline tell the heart to beat faster. When you rest, it slows down. The heart even has its own built-in electrical system that sets this rhythm, which is why it can keep its own beat." }
+    ],
     watch: [
       { name: "Khan Academy — Meet the heart!", url: "https://www.khanacademy.org/science/health-and-medicine/circulatory-system/circulatory-system-introduction/v/meet-the-heart", note: "Video lesson on how blood flows through the heart." },
       { name: "KidsHealth — How the Heart & Circulatory System Work", url: "https://kidshealth.org/en/kids/csmovie.html", note: "Animated video for kids on the heart pumping blood." }
@@ -101,6 +112,13 @@ const ORGANS = [
   {
     id: "brain",
     name: "Brain",
+    reading: [
+      { h: "The body's control center", p: "The brain is the control center for everything you do. It produces your thoughts, feelings, and memories, and it directs both the actions you choose, like waving, and the ones you never think about, like breathing. It is an incredibly complex organ built from about 86 billion nerve cells, and it sits protected inside the bony skull and a cushion of fluid." },
+      { h: "Billions of neurons", p: "The working unit of the brain is the neuron, a special cell that carries information as tiny electrical and chemical signals. Neurons connect to one another in vast networks, and a route that a signal travels along is called a neural pathway. When you learn something new, you are strengthening these pathways. The brain is hungry work: even though it is only about 2% of your body weight, it uses around 20% of your oxygen and energy." },
+      { h: "Three main parts", p: "The brain has three major regions. The cerebrum is the large, wrinkled top part that handles thinking, the senses, personality, and voluntary movement; it is split into left and right halves. The cerebellum sits at the back and fine-tunes balance and coordination. The brainstem connects the brain to the spinal cord and runs the automatic jobs that keep you alive, such as heartbeat and breathing." },
+      { h: "A two-way messaging system", p: "The brain does not work alone. It connects to the spinal cord and a body-wide network of nerves that carry messages in both directions — sensory information flowing in, and commands flowing out to the muscles. Some of these nerve fibers are remarkably long, reaching all the way from your toes to your spinal cord. Together the brain and spinal cord make up the central nervous system." },
+      { h: "Linking to hormones and balance", p: "A small but powerful region called the hypothalamus helps the brain keep the body in balance, or homeostasis. It monitors signals like temperature, hunger, and thirst, and it links the nervous system to the endocrine system by controlling the pituitary gland. Through these connections the brain constantly checks the body's internal state and triggers adjustments to keep conditions stable." }
+    ],
     watch: [
       { name: "Khan Academy — Structure of the nervous system", url: "https://www.khanacademy.org/science/health-and-medicine/human-anatomy-and-physiology/nervous-system-introduction/v/structure-of-the-nervous-system", note: "Video lesson on how the brain and nervous system are organized." },
       { name: "KidsHealth — How the Brain & Nervous System Work", url: "https://kidshealth.org/en/kids/nsmovie.html", note: "Animated video for kids on the brain and nerves." }
@@ -165,6 +183,13 @@ const ORGANS = [
   {
     id: "lung",
     name: "Lungs",
+    reading: [
+      { h: "Why we breathe", p: "Every cell in your body needs a steady supply of oxygen to release energy from food, and every cell produces carbon dioxide as waste that must be removed. The lungs handle both jobs. This trading of gases with the air is called respiration, and it is so important that cells begin to fail within minutes if it stops." },
+      { h: "The path air takes", p: "Air enters through the nose and mouth and travels down the trachea, or windpipe. The trachea splits into two large tubes called bronchi, one for each lung. Inside the lungs these branch into smaller and smaller tubes called bronchioles, like an upside-down tree, carrying air deeper with every branch." },
+      { h: "Where the trade happens", p: "At the very ends of the bronchioles sit millions of tiny air sacs called alveoli. This is where gas exchange takes place: oxygen passes from the air in the alveoli into the blood, while carbon dioxide passes from the blood into the air to be breathed out. The alveoli are wrapped in tiny blood vessels called capillaries, and if you spread them all out flat they would cover roughly the area of a tennis court." },
+      { h: "The muscle that moves air", p: "Lungs cannot move on their own. A dome-shaped muscle below them, the diaphragm, does the work. When the diaphragm contracts and pulls down, it increases the space in your chest and draws air in; when it relaxes, air is pushed out. The muscles between your ribs help, too. You do this about 20,000 times a day, usually without thinking, because the brainstem controls it automatically." },
+      { h: "Partners with the heart", p: "The lungs and the heart work as a team to keep the body in homeostasis. The heart pumps oxygen-poor blood to the lungs, the lungs refresh it, and the oxygen-rich blood returns to the heart to be sent around the body. The lungs also defend you, trapping dust and germs in mucus and sweeping them away with tiny hair-like structures called cilia." }
+    ],
     watch: [
       { name: "Khan Academy — The lungs and pulmonary system", url: "https://www.khanacademy.org/science/health-and-medicine/human-anatomy-and-physiology/lung-introduction/v/the-lungs-and-pulmonary-system", note: "Video lesson introducing the lungs and breathing." },
       { name: "KidsHealth — How the Lungs & Respiratory System Work", url: "https://kidshealth.org/en/kids/rsmovie.html", note: "Animated video for kids on breathing and the lungs." }
@@ -229,6 +254,13 @@ const ORGANS = [
   {
     id: "kidney",
     name: "Kidneys",
+    reading: [
+      { h: "The body's filters", p: "Your body is about 70% water, and that water constantly picks up waste from your cells. The kidneys are two bean-shaped organs, each about the size of a fist, that clean the blood. They remove waste and extra water and turn it into urine — a process of excretion that keeps harmful substances from building up to dangerous levels." },
+      { h: "Millions of tiny filters", p: "Each kidney contains about a million microscopic filtering units called nephrons. Blood enters through the renal artery, and inside each nephron a process called filtration separates waste and excess fluid from the blood while keeping the useful substances. The word renal simply means 'related to the kidney.' The cleaned blood leaves through the renal vein, and the waste continues on as urine." },
+      { h: "From kidney to bladder", p: "Urine produced in the kidneys drains into a funnel-shaped area and then travels down a tube called the ureter to the urinary bladder. The bladder is a stretchy, muscular sac that stores urine until you are ready to release it through another tube, the urethra. Muscles around the urethra let you control when this happens." },
+      { h: "Balancing water and chemicals", p: "The kidneys are master regulators of homeostasis. They constantly adjust how much water stays in the body and keep substances like sodium and potassium at safe levels. When you are dehydrated, hormones tell the kidneys to conserve water, so your urine becomes darker; when you drink plenty, they release more. This is one big reason staying hydrated matters." },
+      { h: "More than cleaning", p: "The kidneys do more than filter. They help control blood pressure by managing how much fluid stays in the blood, and they release a hormone that tells the body to make more red blood cells. They even help activate vitamin D for healthy bones. You can live a healthy life with just one kidney, which is why kidney donation is possible." }
+    ],
     watch: [
       { name: "Khan Academy — The kidney and nephron", url: "https://www.khanacademy.org/science/biology/human-biology/kidney-nephron/v/the-kidney-and-nephron", note: "Video lesson on how nephrons filter the blood." },
       { name: "KidsHealth — How the Urinary System Works", url: "https://kidshealth.org/en/kids/usmovie.html", note: "Animated video for kids on the kidneys and urinary system." }
@@ -293,6 +325,13 @@ const ORGANS = [
   {
     id: "liver",
     name: "Liver",
+    reading: [
+      { h: "The body's chemical factory", p: "The liver is the largest internal organ, weighing about three pounds and sitting in the upper-right part of your abdomen. Think of it as a busy chemical factory that performs over 500 different jobs. It filters the blood, processes the food you eat, stores energy, and removes poisons — work that is essential to keeping the body in homeostasis." },
+      { h: "Cleaning the blood", p: "Blood leaving the stomach and intestines is rich in newly absorbed nutrients, but it can also carry harmful substances. This blood travels through the hepatic portal vein straight to the liver before going anywhere else. The word hepatic means 'related to the liver.' There, the liver sorts and processes nutrients and carries out detoxification — breaking down poisons, drugs, and alcohol so they can be safely removed." },
+      { h: "Hepatocytes do the work", p: "Most of this chemistry happens inside the main liver cells, called hepatocytes. These cells filter, build, and store an enormous range of substances. They also make proteins that help your blood clot when you get a cut, which is why serious liver damage can cause easy bruising and bleeding." },
+      { h: "Making bile for digestion", p: "One of the liver's key products is bile, a greenish fluid that helps digest fats. Bile flows through small bile ducts to the gallbladder, a little pouch that stores it. When you eat a fatty meal, the gallbladder squeezes bile into the small intestine, where it breaks large fat globules into tiny droplets the body can absorb." },
+      { h: "Storing energy and regrowing", p: "The liver helps keep your blood sugar steady. After a meal it stores extra glucose as glycogen, then releases it back into the blood between meals when energy is needed. Remarkably, the liver is the only organ that can regrow lost tissue — even after losing up to two-thirds of itself, it can regenerate." }
+    ],
     watch: [
       { name: "Khan Academy — Liver", url: "https://www.khanacademy.org/science/health-and-medicine/human-anatomy-and-physiology/gastrointestinal-system-introduction/v/liver", note: "Video lesson on the liver and its many jobs." },
       { name: "Khan Academy — Biliary tree", url: "https://www.khanacademy.org/science/health-and-medicine/human-anatomy-and-physiology/gastrointestinal-system-introduction/v/biliary-tree", note: "Video on bile production and the biliary system." }
@@ -356,6 +395,13 @@ const ORGANS = [
   {
     id: "stomach",
     name: "Stomach",
+    reading: [
+      { h: "A muscular mixing bag", p: "The stomach is a stretchy, J-shaped sac in the upper-left abdomen, sitting between the esophagus and the small intestine. Its job is digestion: it stores the food you swallow and breaks it down into a soupy mixture. An empty stomach holds only about a cup, but it can stretch to hold roughly a quart of food." },
+      { h: "Acid and enzymes", p: "The lining of the stomach contains gastric glands that release gastric juice — a powerful blend of mucus, enzymes, and hydrochloric acid. An enzyme is a substance that speeds up the breakdown of food, and the acid is strong enough to dissolve many materials, with a pH around 1.5 to 2. The word gastric means 'related to the stomach.' This acid also kills many harmful bacteria you swallow." },
+      { h: "Why it doesn't digest itself", p: "If the stomach is full of acid strong enough to break down food, why doesn't it digest its own walls? The answer is a protective layer of mucus that coats the lining, which the stomach also rebuilds every few days. When that protection breaks down, acid can damage the wall and form a painful sore called an ulcer." },
+      { h: "Gates at each end", p: "Food flow is controlled by two rings of muscle called sphincters. A sphincter opens to let material through and closes to hold it back. The lower esophageal sphincter at the top keeps acid from rising into the esophagus, and the pyloric sphincter at the bottom releases the food a little at a time into the small intestine, so digestion stays at a steady pace." },
+      { h: "Part of a bigger team", p: "The stomach is one step in the digestive system, and it works on a schedule set by the rest of the body. Your brain can tell the stomach to release acid before you even take a bite — just smelling food can start it. The stomach also releases hormones that signal hunger and fullness, helping the body manage its supply of energy and nutrients, which is part of homeostasis." }
+    ],
     watch: [
       { name: "Khan Academy — Stomach", url: "https://www.khanacademy.org/science/health-and-medicine/gastro-intestinal-system/gastrointestinal-intro/v/stomach", note: "Video lesson on the stomach's role in digestion." },
       { name: "KidsHealth — How the Digestive System Works", url: "https://kidshealth.org/en/kids/dsmovie.html", note: "Animated video for kids on digestion." }
@@ -420,6 +466,13 @@ const ORGANS = [
   {
     id: "pancreas",
     name: "Pancreas",
+    reading: [
+      { h: "One organ, two jobs", p: "The pancreas is a long, flat gland about six inches long, tucked behind the stomach. What makes it unusual is that it belongs to two body systems at once. As part of the digestive system it makes enzymes, and as part of the endocrine system it makes hormones. Endocrine means it releases its hormones straight into the blood." },
+      { h: "Helping digest food", p: "Most of the pancreas is made of cells that produce digestive enzymes. These enzymes travel through the pancreatic duct into the small intestine, where they help break down carbohydrates, proteins, and fats so the body can absorb them. The pancreas makes about a quart of this digestive juice every day." },
+      { h: "Controlling blood sugar", p: "Scattered through the pancreas are clusters of hormone-making cells called the islets of Langerhans. They release two hormones that control the amount of sugar (glucose) in your blood. A hormone is a chemical messenger carried by the blood to control activities elsewhere in the body." },
+      { h: "Insulin and glucagon", p: "The two hormones work as opposites to keep blood sugar in a safe range — a clear example of homeostasis. After you eat, blood sugar rises, so the pancreas releases insulin, which lowers it by helping cells take in glucose. Between meals, blood sugar falls, so the pancreas releases glucagon, which raises it by telling the liver to release stored glucose. (Be careful: some books get this backward, but insulin lowers blood sugar and glucagon raises it.)" },
+      { h: "When it goes wrong", p: "Because the pancreas manages blood sugar, problems with it can cause diabetes. In type 1 diabetes, the body's own immune system destroys the insulin-making cells, so sugar cannot move from the blood into the cells for energy. People with type 1 diabetes manage it by checking their blood sugar and taking insulin every day, which lets them live full, active lives." }
+    ],
     watch: [
       { name: "Khan Academy — Pancreas: insulin & glucagon", url: "https://www.khanacademy.org/science/how-does-the-human-body-work/x0fe8768432761c62:chemical-coordination-and-integration/x0fe8768432761c62:adrenal-and-pancreas/v/pancreas-insulin-glucagon", note: "Video on how the pancreas controls blood sugar." },
       { name: "Khan Academy — Treating type 1 diabetes", url: "https://www.khanacademy.org/science/health-and-medicine/endocrine-system-diseases/diabetes/v/treating-type-i-diabetes", note: "Video connecting the pancreas to type 1 diabetes." }
@@ -612,6 +665,13 @@ const ORGANS = [
   {
     id: "small-intestine",
     name: "Small Intestine",
+    reading: [
+      { h: "Long, narrow, and busy", p: "The small intestine is a coiled tube about 20 feet long, which makes it longer than the large intestine. It is called 'small' only because it is narrow. This is where most chemical digestion finishes and where nearly all absorption happens — the taking of nutrients into the bloodstream." },
+      { h: "Three sections", p: "The small intestine has three parts. The first, the duodenum, receives partly digested food from the stomach along with bile from the liver and enzymes from the pancreas to break the food down further. The middle section, the jejunum, does most of the absorbing, and the final section, the ileum, absorbs what remains before passing leftovers to the large intestine." },
+      { h: "A giant surface area", p: "To absorb as much as possible, the inner wall is folded and covered with millions of tiny finger-like bumps called villi, and each one is covered with even smaller microvilli. All this folding gives the small intestine a huge surface area — often compared to the size of a tennis court — packed into your abdomen. A nutrient is a substance from food the body needs for energy, growth, and repair." },
+      { h: "Into the blood", p: "Inside each villus are tiny blood vessels called capillaries. As nutrients are absorbed, they pass through the thin intestinal wall into these capillaries, which carry them to the liver for processing and then on to the rest of the body. Without this step, food could be fully digested and the body's cells would still starve — so absorption is vital to homeostasis." },
+      { h: "Keeping food moving", p: "Food is pushed along the intestine by waves of muscle contraction called peristalsis. These waves keep the contents moving in one direction during digestion, which takes food roughly three to five hours to travel the whole length. Nerve signals control the timing, and hormones tell the pancreas and gallbladder when to send their juices." }
+    ],
     watch: [
       { name: "Khan Academy — Small intestine 3: Absorption", url: "https://www.khanacademy.org/science/health-and-medicine/gastro-intestinal-system/gastrointestinal-intro/v/small-intestine-part-3-absorption", note: "Video on nutrient absorption and villi." },
       { name: "KidsHealth — How the Digestive System Works", url: "https://kidshealth.org/en/kids/dsmovie.html", note: "Animated video for kids covering the small intestine." }
@@ -676,6 +736,13 @@ const ORGANS = [
   {
     id: "large-intestine",
     name: "Large Intestine",
+    reading: [
+      { h: "The final stretch", p: "The large intestine frames the coiled small intestine like a border around the abdomen. It is shorter than the small intestine — about five feet — but wider, which is why it is called 'large.' Its job begins after the small intestine has taken out the nutrients: it handles what is left over." },
+      { h: "Saving water", p: "A major task of the large intestine is the absorption of water. As leftover material passes through, the large intestine reabsorbs large amounts of water back into the body, which helps prevent dehydration and is an important part of homeostasis. As the water is removed, the leftovers thicken into solid waste called feces." },
+      { h: "The colon's path", p: "The main, longest part of the large intestine is the colon, which has four sections that travel up the right side, across the top, and down the left side of the belly. Material enters from the small intestine at a pouch called the cecum and slowly moves through the colon as water is absorbed, completing the last stage of digestion." },
+      { h: "Trillions of helpers", p: "The large intestine is home to trillions of helpful bacteria known together as the gut microbiome — in fact there are more microbes in your gut than cells in your whole body. These bacteria break down some leftover material and even produce certain vitamins, such as vitamin K, which helps your blood clot. A large share of the body's immune cells also sit in the gut." },
+      { h: "Storing and releasing waste", p: "At the end of the large intestine, the rectum stores feces until they can be released from the body through the anus, which is controlled by muscular sphincters. Nerve signals trigger the urge to go. The appendix, a small pouch near the cecum, has only a minor role, though it may help store helpful gut bacteria." }
+    ],
     watch: [
       { name: "Khan Academy — Colon, rectum, and anus", url: "https://www.khanacademy.org/test-prep/mcat/organ-systems/the-gastrointestinal-system/v/colon-rectum-anus", note: "Video lesson on the large intestine and water absorption." },
       { name: "KidsHealth — How the Digestive System Works", url: "https://kidshealth.org/en/kids/dsmovie.html", note: "Animated video for kids covering the large intestine." }
