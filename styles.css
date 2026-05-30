@@ -185,6 +185,15 @@ a { color: var(--teal); }
   font-family: var(--serif); font-size: 22px; font-weight: 700;
   color: var(--accent-deep); margin: 0 0 12px;
 }
+.home-directions__intro {
+  margin: 0 0 14px;
+  font-size: 16px; line-height: 1.55;
+  color: var(--ink);
+  padding: 12px 14px;
+  background: #fff;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
 .home-directions__steps {
   margin: 0; padding-left: 22px;
   display: flex; flex-direction: column; gap: 8px;

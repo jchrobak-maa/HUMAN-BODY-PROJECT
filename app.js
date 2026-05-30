@@ -734,6 +734,7 @@
 
         '<section class="home-block home-directions">' +
           '<h2 class="home-directions__title">For students — start here</h2>' +
+          '<p class="home-directions__intro"><strong>This is the first step of your Organ Museum presentation project. You will use the research and notes you collect here to build an infographic about your assigned organ.</strong></p>' +
           '<ol class="home-directions__steps">' +
             '<li><b>Log in</b> at the top of the page with your assigned username. Your password is the same as your username.</li>' +
             '<li><b>Type your first name only</b> (no last names) in the login box.</li>' +
