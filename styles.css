@@ -722,8 +722,18 @@ a { color: var(--teal); }
 .teacher-summary { font-size: 14px; color: var(--ink-soft); font-weight: 600; }
 .teacher-toolbar__spacer { flex: 1 1 auto; }
 
-.teacher-students { display: flex; flex-direction: column; gap: 14px; }
+.teacher-students { display: flex; flex-direction: column; gap: 16px; }
 .teacher-empty { color: var(--ink-faint); padding: 24px; text-align: center; }
+
+.t-cluster { background: var(--bg-panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.t-cluster__head { cursor: pointer; padding: 14px 20px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; list-style: none; background: var(--accent-soft); border-bottom: 1px solid #efc9c9; }
+.t-cluster__head::-webkit-details-marker { display: none; }
+.t-cluster__head::before { content: "▸"; color: var(--accent); font-size: 13px; margin-right: 2px; transition: transform .15s; }
+.t-cluster[open] .t-cluster__head::before { transform: rotate(90deg); }
+.t-cluster__name { font-family: var(--serif); font-weight: 700; font-size: 19px; color: var(--accent-deep); }
+.t-cluster__meta { font-size: 13px; color: var(--ink-soft); font-weight: 600; }
+.t-cluster__body { padding: 10px 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.t-cluster__body .t-student { box-shadow: none; }
 
 .t-student { background: var(--bg-panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
 .t-student__head { cursor: pointer; padding: 16px 20px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; list-style: none; }
@@ -733,6 +743,14 @@ a { color: var(--teal); }
 .t-student__name { font-family: var(--serif); font-weight: 600; font-size: 19px; color: var(--ink); }
 .t-student__first { font-family: var(--sans); font-weight: 500; font-size: 14px; color: var(--ink-soft); }
 .t-student__meta { font-size: 13px; color: var(--ink-faint); }
+.t-student__print {
+  margin-left: auto;
+  font: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
+  background: #fff; color: var(--teal);
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  padding: 5px 11px;
+}
+.t-student__print:hover { background: var(--teal-soft); border-color: var(--teal); }
 .t-student__body { padding: 4px 20px 18px; border-top: 1px solid var(--line-soft); }
 
 .t-organ { margin-top: 16px; }
@@ -746,9 +764,13 @@ a { color: var(--teal); }
 
 @media print {
   .site-header, .teacher-toolbar, .teacher-auth { display: none !important; }
-  .t-student, .teacher-students { box-shadow: none; }
+  .t-student, .teacher-students, .t-cluster { box-shadow: none; }
   .t-student { break-inside: avoid; }
   .t-student__body { display: block !important; }
+  .t-student__print { display: none !important; }
+  /* When the teacher clicks Print on a single student, hide the rest. */
+  body.printing-one .t-cluster:not(.t-print-target) { display: none !important; }
+  body.printing-one .t-student:not(.t-print-target) { display: none !important; }
 }
 
 /* ----------------------------------------------------- PRINTABLE PACKET */

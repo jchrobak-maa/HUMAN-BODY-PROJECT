@@ -100,13 +100,22 @@
   }
 
   /* --------------------------------------------------------- filters */
+  // Cluster is normally sent on each row, but for safety (old rows, missing
+  // header, etc.) we fall back to parsing the cluster letter from the username.
+  function clusterFor(r) {
+    var c = r.class || r.classCode || "";
+    if (c) return String(c).toLowerCase();
+    var m = /^student\d{1,2}([a-e])$/i.exec(r.username || r.name || "");
+    return m ? m[1].toLowerCase() : "";
+  }
+
   function uniqueSorted(vals) {
     var seen = {};
     vals.forEach(function (v) { if (v != null && v !== "") seen[v] = true; });
     return Object.keys(seen).sort();
   }
   function buildFilters() {
-    var classes = uniqueSorted(STATE.rows.map(function (r) { return r.class || r.classCode; }));
+    var classes = uniqueSorted(STATE.rows.map(clusterFor));
     var organs = uniqueSorted(STATE.rows.map(function (r) { return r.organ; }))
       .sort(function (a, b) { return orderIndex(ORGAN_ORDER, a) - orderIndex(ORGAN_ORDER, b); });
     classEl.innerHTML = '<option value="">All clusters</option>' +
@@ -119,6 +128,8 @@
   }
 
   /* ---------------------------------------------------------- render */
+  // Two-level grouping: Cluster → Student → notes. Makes it easy to find a
+  // class, drill into a student, and print just that student's work.
   function render() {
     var nameQ = (searchEl.value || "").trim().toLowerCase();
     var classQ = classEl.value;
@@ -127,31 +138,51 @@
     var filtered = STATE.rows.filter(function (r) {
       var uname = (r.username || r.name || "");
       var fname = (r.firstName || "");
-      var cls = (r.class || r.classCode || "");
+      var cls = clusterFor(r);
       if (nameQ && (uname + " " + fname).toLowerCase().indexOf(nameQ) < 0) return false;
       if (classQ && cls !== classQ) return false;
       if (organQ && r.organ !== organQ) return false;
       return true;
     });
 
-    var groups = {};
+    var clusters = {};
     filtered.forEach(function (r) {
+      var clsKey = clusterFor(r) || "_no";
+      var c = clusters[clsKey] || (clusters[clsKey] = { cls: clsKey === "_no" ? "" : clsKey, students: {} });
       var uname = r.username || r.name || "(no username)";
-      var cls = r.class || r.classCode || "";
-      if (!groups[uname]) groups[uname] = { username: uname, firstName: r.firstName || "", cls: cls, rows: [] };
-      if (!groups[uname].firstName && r.firstName) groups[uname].firstName = r.firstName;
-      groups[uname].rows.push(r);
+      var sg = c.students[uname];
+      if (!sg) sg = c.students[uname] = { username: uname, firstName: r.firstName || "", cls: c.cls, rows: [] };
+      if (!sg.firstName && r.firstName) sg.firstName = r.firstName;
+      sg.rows.push(r);
     });
 
-    var keys = Object.keys(groups).sort(function (a, b) { return a.toLowerCase().localeCompare(b.toLowerCase()); });
-    summaryEl.textContent = keys.length + (keys.length === 1 ? " student · " : " students · ") +
+    var clusterKeys = Object.keys(clusters).sort();
+    var totalStudents = 0;
+    clusterKeys.forEach(function (k) { totalStudents += Object.keys(clusters[k].students).length; });
+
+    summaryEl.textContent = totalStudents + (totalStudents === 1 ? " student · " : " students · ") +
       filtered.length + (filtered.length === 1 ? " note" : " notes");
 
-    if (!keys.length) {
+    if (!totalStudents) {
       studentsEl.innerHTML = '<p class="teacher-empty">No notes match your filters yet.</p>';
       return;
     }
-    studentsEl.innerHTML = keys.map(function (k) { return renderStudent(groups[k]); }).join("");
+
+    studentsEl.innerHTML = clusterKeys.map(function (ck) {
+      var c = clusters[ck];
+      var sKeys = Object.keys(c.students).sort();
+      var nNotes = sKeys.reduce(function (sum, sk) { return sum + c.students[sk].rows.length; }, 0);
+      var label = c.cls ? "Cluster " + c.cls.toUpperCase() : "(no cluster)";
+      return '<details class="t-cluster"' + (STATE.collapsed ? "" : " open") + ">" +
+        '<summary class="t-cluster__head">' +
+          '<span class="t-cluster__name">' + esc(label) + "</span>" +
+          '<span class="t-cluster__meta">' + sKeys.length +
+            (sKeys.length === 1 ? " student · " : " students · ") +
+            nNotes + (nNotes === 1 ? " note" : " notes") + "</span>" +
+        "</summary>" +
+        '<div class="t-cluster__body">' + sKeys.map(function (sk) { return renderStudent(c.students[sk]); }).join("") + "</div>" +
+      "</details>";
+    }).join("");
   }
 
   function renderStudent(g) {
@@ -185,13 +216,15 @@
 
     var openAttr = STATE.collapsed ? "" : " open";
     var period = g.cls ? "Cluster " + String(g.cls).toUpperCase() : "(no cluster)";
-    return '<details class="t-student"' + openAttr + ">" +
+    var display = g.firstName
+      ? esc(g.firstName) + ' <span class="t-student__first">(' + esc(g.username) + ")</span>"
+      : esc(g.username);
+    return '<details class="t-student"' + openAttr + ' data-username="' + esc(g.username) + '">' +
       '<summary class="t-student__head">' +
-        '<span class="t-student__name">' + esc(g.username) +
-          (g.firstName ? ' <span class="t-student__first">(' + esc(g.firstName) + ")</span>" : "") +
-        "</span>" +
+        '<span class="t-student__name">' + display + "</span>" +
         '<span class="t-student__meta">' + esc(period) + " · " +
           g.rows.length + (g.rows.length === 1 ? " note" : " notes") + "</span>" +
+        '<button type="button" class="t-student__print" title="Print just this student\'s notes">🖨 Print</button>' +
       "</summary>" +
       '<div class="t-student__body">' + body + "</div>" +
     "</details>";
@@ -212,10 +245,33 @@
     if (key) load(key);
   });
   printEl.addEventListener("click", function () { window.print(); });
+
+  // Per-student Print: hide every other cluster/student, print, then restore.
+  studentsEl.addEventListener("click", function (e) {
+    var btn = e.target.closest && e.target.closest(".t-student__print");
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    var student = btn.closest(".t-student");
+    if (!student) return;
+    var cluster = student.closest(".t-cluster");
+    document.querySelectorAll(".t-print-target").forEach(function (x) { x.classList.remove("t-print-target"); });
+    student.open = true;
+    if (cluster) cluster.open = true;
+    student.classList.add("t-print-target");
+    if (cluster) cluster.classList.add("t-print-target");
+    document.body.classList.add("printing-one");
+    setTimeout(function () { window.print(); }, 50);
+  });
+  function endPerStudentPrint() {
+    document.body.classList.remove("printing-one");
+    document.querySelectorAll(".t-print-target").forEach(function (x) { x.classList.remove("t-print-target"); });
+  }
+  window.addEventListener("afterprint", endPerStudentPrint);
   expandEl.addEventListener("click", function () {
     STATE.collapsed = !STATE.collapsed;
     expandEl.textContent = STATE.collapsed ? "Expand all" : "Collapse all";
-    studentsEl.querySelectorAll("details.t-student").forEach(function (d) { d.open = !STATE.collapsed; });
+    studentsEl.querySelectorAll("details.t-student, details.t-cluster").forEach(function (d) { d.open = !STATE.collapsed; });
   });
 
   /* ------------------------------------------------------------ boot */
