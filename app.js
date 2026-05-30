@@ -730,11 +730,18 @@
           '<p class="home-hero__eyebrow">Welcome to the</p>' +
           '<h1 class="home-hero__title">Human Body Museum</h1>' +
           '<p class="home-hero__lead">A hands-on tour of the organs that keep you alive. For each organ you can explore how it is built, what it does, how it teams up with the rest of the body, and what happens when something goes wrong — and you can take notes as you learn.</p>' +
-          '<div class="home-hero__cta">' +
-            '<a class="home-cta" href="#heart">Start exploring →</a>' +
-            '<span class="home-hero__count">' + ORGANS.length + ' organ exhibits</span>' +
-          "</div>" +
         "</header>" +
+
+        '<section class="home-block home-directions">' +
+          '<h2 class="home-directions__title">For students — start here</h2>' +
+          '<ol class="home-directions__steps">' +
+            '<li><b>Log in</b> at the top of the page with your assigned username. Your password is the same as your username.</li>' +
+            '<li><b>Type your first name only</b> (no last names) in the login box.</li>' +
+            '<li><b>Find your assigned organ</b> in the menu on the left.</li>' +
+            '<li><b>Read each section</b>, click the numbered parts on the diagram to learn what they do, and watch a video.</li>' +
+            '<li><b>Answer the note prompts</b> beside each section. Your notes save automatically for your teacher to see.</li>' +
+          "</ol>" +
+        "</section>" +
 
         '<section class="home-block">' +
           sectionTitle("What's inside each exhibit") +
@@ -749,20 +756,16 @@
         "</section>" +
 
         '<section class="home-block">' +
-          sectionTitle("Pick an organ to begin") +
+          sectionTitle("Your exhibit list") +
           '<div class="home-grid">' + grid + "</div>" +
         "</section>" +
 
         '<section class="home-block">' +
           '<div class="home-audience">' +
             '<div class="card home-audience__col">' +
-              '<h3 class="home-audience__title">For students</h3>' +
-              "<p>Choose any organ, click around its diagram, watch a video, and answer the short prompts as you go. Your notes are saved so you can review them later — and your teacher can see them too.</p>" +
-            "</div>" +
-            '<div class="card home-audience__col">' +
               '<h3 class="home-audience__title">For teachers</h3>' +
               "<p>Every note students save flows into one place. Open the " + teacherLink +
-              " to read all responses grouped by student, filter by class, and print them.</p>" +
+              " to read all responses grouped by cluster and student, filter by class, and print them.</p>" +
             "</div>" +
           "</div>" +
         "</section>" +
