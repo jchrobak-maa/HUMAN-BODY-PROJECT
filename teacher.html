@@ -28,9 +28,9 @@
     <!-- key entry -->
     <section id="auth" class="card teacher-auth" aria-label="Teacher sign-in">
       <h1>Student notes</h1>
-      <p class="teacher-auth__lead">Enter your teacher key to load the notes students have submitted to the class notebook.</p>
+      <p class="teacher-auth__lead">Log in to load the notes students have submitted to the class notebook. (Default teacher login: <b>teacher1</b>.)</p>
       <div class="teacher-auth__row">
-        <input id="key" type="password" class="teacher-input" placeholder="Teacher key" autocomplete="current-password" />
+        <input id="key" type="password" class="teacher-input" placeholder="Teacher login (e.g. teacher1)" autocomplete="current-password" />
         <button id="load" class="teacher-btn" type="button">Load responses</button>
       </div>
       <label class="teacher-check"><input type="checkbox" id="remember" /> Remember on this device</label>
@@ -40,8 +40,8 @@
     <!-- dashboard -->
     <section id="dash" class="teacher-dash" hidden>
       <div class="teacher-toolbar">
-        <input id="search" class="teacher-input" type="search" placeholder="Search student name…" />
-        <select id="classFilter" class="teacher-select" aria-label="Filter by class code"></select>
+        <input id="search" class="teacher-input" type="search" placeholder="Search username or first name…" />
+        <select id="classFilter" class="teacher-select" aria-label="Filter by class period"></select>
         <select id="organFilter" class="teacher-select" aria-label="Filter by organ"></select>
         <span id="summary" class="teacher-summary"></span>
         <span class="teacher-toolbar__spacer"></span>

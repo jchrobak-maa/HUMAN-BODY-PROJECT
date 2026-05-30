@@ -209,6 +209,35 @@ a { color: var(--teal); }
 
 /* ------------------------------------------------------------ ORGAN MAIN */
 .organ-main { min-width: 0; }
+
+/* ------------------------------------------------------------ AUTH BAR */
+.authbar { margin: 16px clamp(20px, 4vw, 56px) 0; border-radius: var(--radius); }
+.authbar--in {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 12px 18px; background: var(--teal-soft); border: 1px solid #cfe0df;
+}
+.authbar__who { font-size: 14.5px; color: var(--ink); }
+.authbar__dot { color: var(--teal); font-weight: 700; }
+.authbar__period { font-size: 12px; font-weight: 700; color: var(--teal); background: #fff; border: 1px solid #cfe0df; border-radius: 999px; padding: 2px 8px; margin-left: 4px; }
+.authbar__logout { font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; color: #fff; background: var(--teal); border: none; border-radius: var(--radius-sm); padding: 8px 16px; }
+.authbar__logout:hover { background: #265b5e; }
+
+.authbar--out { padding: 14px 18px; background: var(--bg-panel); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.authbar__form { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.authbar__title { font-family: var(--serif); font-weight: 600; font-size: 16px; color: var(--accent-deep); padding-bottom: 8px; }
+.authbar__field { display: flex; flex-direction: column; gap: 4px; }
+.authbar__field > span { font-size: 12px; color: var(--ink-soft); }
+.authbar__field--name > span b { color: var(--accent); }
+.authbar__field input {
+  font: inherit; color: var(--ink); background: #fff;
+  border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 9px 11px; width: 160px;
+}
+.authbar__field input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-soft); }
+.authbar__login { font: inherit; font-weight: 600; cursor: pointer; color: #fff; background: var(--accent); border: none; border-radius: var(--radius-sm); padding: 10px 20px; }
+.authbar__login:hover { background: var(--accent-deep); }
+.authbar__status { width: 100%; font-size: 13.5px; color: var(--ink-faint); margin-top: 2px; }
+.authbar__status--warn { color: var(--accent); font-weight: 600; }
+.authbar__status--ok { color: var(--teal); font-weight: 600; }
 .organ { padding: 32px clamp(20px, 4vw, 56px) 24px; }
 
 /* Hero */
@@ -702,6 +731,7 @@ a { color: var(--teal); }
 .t-student__head::before { content: "▸"; color: var(--teal); font-size: 13px; margin-right: 2px; transition: transform .15s; }
 .t-student[open] .t-student__head::before { transform: rotate(90deg); }
 .t-student__name { font-family: var(--serif); font-weight: 600; font-size: 19px; color: var(--ink); }
+.t-student__first { font-family: var(--sans); font-weight: 500; font-size: 14px; color: var(--ink-soft); }
 .t-student__meta { font-size: 13px; color: var(--ink-faint); }
 .t-student__body { padding: 4px 20px 18px; border-top: 1px solid var(--line-soft); }
 

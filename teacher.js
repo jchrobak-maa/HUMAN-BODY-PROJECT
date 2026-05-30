@@ -106,11 +106,14 @@
     return Object.keys(seen).sort();
   }
   function buildFilters() {
-    var classes = uniqueSorted(STATE.rows.map(function (r) { return r.classCode; }));
+    var classes = uniqueSorted(STATE.rows.map(function (r) { return r.class || r.classCode; }));
     var organs = uniqueSorted(STATE.rows.map(function (r) { return r.organ; }))
       .sort(function (a, b) { return orderIndex(ORGAN_ORDER, a) - orderIndex(ORGAN_ORDER, b); });
-    classEl.innerHTML = '<option value="">All classes</option>' +
-      classes.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + "</option>"; }).join("");
+    classEl.innerHTML = '<option value="">All periods</option>' +
+      classes.map(function (c) {
+        var label = /^[a-e]$/i.test(c) ? "Period " + c.toUpperCase() : c;
+        return '<option value="' + esc(c) + '">' + esc(label) + "</option>";
+      }).join("");
     organEl.innerHTML = '<option value="">All organs</option>' +
       organs.map(function (o) { return '<option value="' + esc(o) + '">' + esc(o) + "</option>"; }).join("");
   }
@@ -122,19 +125,22 @@
     var organQ = organEl.value;
 
     var filtered = STATE.rows.filter(function (r) {
-      if (nameQ && String(r.name || "").toLowerCase().indexOf(nameQ) < 0) return false;
-      if (classQ && r.classCode !== classQ) return false;
+      var uname = (r.username || r.name || "");
+      var fname = (r.firstName || "");
+      var cls = (r.class || r.classCode || "");
+      if (nameQ && (uname + " " + fname).toLowerCase().indexOf(nameQ) < 0) return false;
+      if (classQ && cls !== classQ) return false;
       if (organQ && r.organ !== organQ) return false;
       return true;
     });
 
     var groups = {};
     filtered.forEach(function (r) {
-      var name = r.name || "(no name)";
-      var code = r.classCode || "(no code)";
-      var k = name + " • " + code;
-      if (!groups[k]) groups[k] = { name: name, classCode: code, rows: [] };
-      groups[k].rows.push(r);
+      var uname = r.username || r.name || "(no username)";
+      var cls = r.class || r.classCode || "";
+      if (!groups[uname]) groups[uname] = { username: uname, firstName: r.firstName || "", cls: cls, rows: [] };
+      if (!groups[uname].firstName && r.firstName) groups[uname].firstName = r.firstName;
+      groups[uname].rows.push(r);
     });
 
     var keys = Object.keys(groups).sort(function (a, b) { return a.toLowerCase().localeCompare(b.toLowerCase()); });
@@ -178,10 +184,13 @@
     }).join("");
 
     var openAttr = STATE.collapsed ? "" : " open";
+    var period = g.cls ? "Period " + String(g.cls).toUpperCase() : "(no period)";
     return '<details class="t-student"' + openAttr + ">" +
       '<summary class="t-student__head">' +
-        '<span class="t-student__name">' + esc(g.name) + "</span>" +
-        '<span class="t-student__meta">' + esc(g.classCode) + " · " +
+        '<span class="t-student__name">' + esc(g.username) +
+          (g.firstName ? ' <span class="t-student__first">(' + esc(g.firstName) + ")</span>" : "") +
+        "</span>" +
+        '<span class="t-student__meta">' + esc(period) + " · " +
           g.rows.length + (g.rows.length === 1 ? " note" : " notes") + "</span>" +
       "</summary>" +
       '<div class="t-student__body">' + body + "</div>" +

@@ -438,8 +438,9 @@
 
   /* ----------------------------------------------------- STUDENT NOTES */
   var NOTES_CFG = window.NOTES_CONFIG || { endpoint: "", requireClassCode: true };
-  var ID_KEY = "hbm_identity";
-  var NOTES_KEY = "hbm_notes";
+  var NOTES_PREFIX = "hbm_notes::";
+  var SESSION_KEY = "hbm_session";
+  var IDLE_MIN = Number(NOTES_CFG.autoLogoutMinutes || 20);
 
   function readJSON(key, fallback) {
     try { return JSON.parse(localStorage.getItem(key)) || fallback; }
@@ -448,20 +449,46 @@
   function writeJSON(key, val) {
     try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
   }
-  function getIdentity() { return readJSON(ID_KEY, { name: "", classCode: "" }); }
-  function saveIdentity(id) { writeJSON(ID_KEY, id); }
+
+  /* --- login session (soft gate; the roster lives in client code) --------
+     This is NOT strong security: the valid usernames are discoverable and
+     username == password. It identifies students and keeps the next student
+     on a shared computer from seeing the previous one's notes. */
+  function getSession() {
+    try { return JSON.parse(sessionStorage.getItem(SESSION_KEY)); } catch (e) { return null; }
+  }
+  function setSession(s) { try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(s)); } catch (e) {} }
+  function clearSession() { try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {} }
+
+  // Students: student<1-12><a-e> (a-e = the five class periods). Teacher: teacher1.
+  function validateLogin(username, password) {
+    var u = (username || "").trim().toLowerCase();
+    var p = (password || "").trim().toLowerCase();
+    if (!u || u !== p) return null;
+    if (u === "teacher1") return { username: "teacher1", role: "teacher", cls: "" };
+    var m = /^student([1-9]|1[0-2])([a-e])$/.exec(u);
+    if (m) return { username: u, role: "student", cls: m[2] };
+    return null;
+  }
+
+  // Notes are stored under a per-username key so each student only sees their own.
+  function notesKey() {
+    var s = getSession();
+    return NOTES_PREFIX + (s ? s.username : "anon");
+  }
   function getOrganNotes(organId) {
-    var all = readJSON(NOTES_KEY, {});
+    var all = readJSON(notesKey(), {});
     return all[organId] || [];
   }
   function getSectionNotes(organId, sectionKey) {
     return getOrganNotes(organId).filter(function (n) { return n.sectionKey === sectionKey; });
   }
   function addOrganNote(organId, entry) {
-    var all = readJSON(NOTES_KEY, {});
+    var key = notesKey();
+    var all = readJSON(key, {});
     if (!all[organId]) all[organId] = [];
     all[organId].push(entry);
-    writeJSON(NOTES_KEY, all);
+    writeJSON(key, all);
   }
 
   function postNote(payload) {
@@ -486,25 +513,73 @@
     }
   }
 
-  // One identity bar per page; every note gets tagged with this name + class code.
-  function identityBar() {
-    var id = getIdentity();
-    var bar = el("section", { class: "card identitybar", "aria-label": "Your notebook details" });
-    bar.innerHTML =
-      '<div class="identitybar__main">' +
-        '<span class="identitybar__tag">📓 Your notebook</span>' +
-        '<label class="identitybar__field"><span>Name</span>' +
-          '<input type="text" class="id-name" autocomplete="name" placeholder="First name" value="' + esc(id.name) + '"></label>' +
-        '<label class="identitybar__field"><span>Class code</span>' +
-          '<input type="text" class="id-code" placeholder="e.g. BIO-3" value="' + esc(id.classCode) + '"></label>' +
-      '</div>' +
-      '<p class="identitybar__hint">Fill this in once. Every note you save below is tagged with your name and class code.</p>';
-    var nameEl = bar.querySelector(".id-name");
-    var codeEl = bar.querySelector(".id-code");
-    function persist() { saveIdentity({ name: nameEl.value.trim(), classCode: codeEl.value.trim() }); }
-    nameEl.addEventListener("change", persist);
-    codeEl.addEventListener("change", persist);
-    return bar;
+  /* --- persistent auth bar (lives in #authBar, not re-rendered per page) --- */
+  var authBarEl = document.getElementById("authBar");
+  var idleTimer = null;
+
+  function periodLabel(cls) { return cls ? "Period " + cls.toUpperCase() : ""; }
+
+  function renderAuthBar(msg, kind) {
+    if (!authBarEl) return;
+    var s = getSession();
+    if (s) {
+      authBarEl.className = "authbar authbar--in";
+      authBarEl.innerHTML =
+        '<div class="authbar__who"><span class="authbar__dot" aria-hidden="true">✓</span> ' +
+          "Logged in as <b>" + esc(s.username) + "</b>" +
+          (s.firstName ? " — " + esc(s.firstName) : "") +
+          (s.cls ? ' <span class="authbar__period">' + esc(periodLabel(s.cls)) + "</span>" : "") +
+        "</div>" +
+        '<button type="button" class="authbar__logout">Log out</button>';
+      authBarEl.querySelector(".authbar__logout").addEventListener("click", function () { doLogout(false); });
+    } else {
+      authBarEl.className = "authbar authbar--out";
+      authBarEl.innerHTML =
+        '<form class="authbar__form" autocomplete="off">' +
+          '<span class="authbar__title">🔒 Log in to take notes</span>' +
+          '<label class="authbar__field authbar__field--name"><span><b>First name only</b> — no last names</span>' +
+            '<input type="text" class="auth-first" placeholder="First name" autocomplete="off"></label>' +
+          '<label class="authbar__field"><span>Username</span>' +
+            '<input type="text" class="auth-user" placeholder="e.g. student3b" autocomplete="off"></label>' +
+          '<label class="authbar__field"><span>Password</span>' +
+            '<input type="password" class="auth-pass" placeholder="same as username" autocomplete="off"></label>' +
+          '<button type="submit" class="authbar__login">Log in</button>' +
+          '<span class="authbar__status" role="status" aria-live="polite"></span>' +
+        "</form>";
+      var form = authBarEl.querySelector(".authbar__form");
+      var statusEl = authBarEl.querySelector(".authbar__status");
+      function warn(m) { statusEl.textContent = m; statusEl.className = "authbar__status authbar__status--warn"; }
+      if (msg) { statusEl.textContent = msg; statusEl.className = "authbar__status" + (kind ? " authbar__status--" + kind : ""); }
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var first = form.querySelector(".auth-first").value.trim();
+        var sess = validateLogin(form.querySelector(".auth-user").value, form.querySelector(".auth-pass").value);
+        if (!first) { warn("Enter your first name."); return; }
+        if (!sess) { warn("That login isn't valid. Your username and password are the same (e.g. student3b)."); return; }
+        sess.firstName = first.split(/\s+/)[0];   // first name only
+        setSession(sess);
+        resetIdle();
+        renderAuthBar();
+        route();   // re-render so the note boxes load this user's notes
+      });
+    }
+  }
+
+  function doLogout(auto) {
+    clearSession();
+    if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
+    if (typeof TTS !== "undefined") TTS.stop();
+    renderAuthBar(
+      auto ? "You were logged out automatically after a period of inactivity." : "You are logged out. Your saved notes are kept.",
+      auto ? "warn" : "ok");
+    route();
+  }
+
+  function resetIdle() {
+    if (idleTimer) clearTimeout(idleTimer);
+    if (getSession() && IDLE_MIN > 0) {
+      idleTimer = setTimeout(function () { doLogout(true); }, IDLE_MIN * 60000);
+    }
   }
 
   // A compact note box attached to one content section, with a guiding prompt.
@@ -545,30 +620,21 @@
     renderSaved();
 
     saveEl.addEventListener("click", function () {
-      var id = getIdentity();
-      var nameInput = articleEl.querySelector(".id-name");
-      var codeInput = articleEl.querySelector(".id-code");
-      if (nameInput) id.name = nameInput.value.trim();
-      if (codeInput) id.classCode = codeInput.value.trim();
-      saveIdentity(id);
-
+      var s = getSession();
+      if (!s || s.role !== "student") {
+        setStatus("Log in at the top of the page to save notes.", "warn");
+        if (authBarEl) authBarEl.scrollIntoView({ block: "center" });
+        var uel = document.querySelector(".auth-user"); if (uel) uel.focus();
+        return;
+      }
       var note = textEl.value.trim();
-      if (!id.name) {
-        setStatus("Add your name at the top first.", "warn");
-        if (nameInput) { nameInput.focus(); nameInput.scrollIntoView({ block: "center" }); }
-        return;
-      }
-      if (NOTES_CFG.requireClassCode && !id.classCode) {
-        setStatus("Add your class code at the top first.", "warn");
-        if (codeInput) { codeInput.focus(); codeInput.scrollIntoView({ block: "center" }); }
-        return;
-      }
       if (!note) { setStatus("Write something before saving.", "warn"); textEl.focus(); return; }
 
+      resetIdle();
       saveEl.disabled = true;
       setStatus("Saving…");
       var payload = {
-        name: id.name, classCode: id.classCode,
+        username: s.username, firstName: s.firstName || "", class: s.cls || "",
         organ: o.name, organId: o.id,
         section: sectionLabel, prompt: prompt,
         note: note, at: new Date().toISOString()
@@ -715,7 +781,6 @@
     TTS.stop();
 
     articleEl.innerHTML = heroHtml(o);
-    articleEl.appendChild(identityBar());
 
     articleEl.insertAdjacentHTML("beforeend", overviewSection(o));
     articleEl.appendChild(noteCatcher(o, "overview", "Overview"));
@@ -798,7 +863,14 @@
     if (g && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); g.classList.toggle("is-open"); }
   });
 
+  /* auto-logout on inactivity (and on browser close, via sessionStorage) */
+  ["click", "keydown", "touchstart", "scroll"].forEach(function (ev) {
+    document.addEventListener(ev, function () { if (getSession()) resetIdle(); }, { passive: true });
+  });
+
   /* boot -------------------------------------------------------------- */
   buildNav();
+  renderAuthBar();
+  resetIdle();
   route();
 })();
