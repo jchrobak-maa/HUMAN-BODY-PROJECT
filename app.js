@@ -460,7 +460,7 @@
   function setSession(s) { try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(s)); } catch (e) {} }
   function clearSession() { try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {} }
 
-  // Students: student<1-12><a-e> (a-e = the five class periods). Teacher: teacher1.
+  // Students: student<1-12><a-e> (a-e = the five class clusters). Teacher: teacher1.
   function validateLogin(username, password) {
     var u = (username || "").trim().toLowerCase();
     var p = (password || "").trim().toLowerCase();
@@ -517,7 +517,7 @@
   var authBarEl = document.getElementById("authBar");
   var idleTimer = null;
 
-  function periodLabel(cls) { return cls ? "Period " + cls.toUpperCase() : ""; }
+  function periodLabel(cls) { return cls ? "Cluster " + cls.toUpperCase() : ""; }
 
   function renderAuthBar(msg, kind) {
     if (!authBarEl) return;
@@ -570,7 +570,7 @@
     if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
     if (typeof TTS !== "undefined") TTS.stop();
     renderAuthBar(
-      auto ? "You were logged out automatically after a period of inactivity." : "You are logged out. Your saved notes are kept.",
+      auto ? "You were logged out automatically due to inactivity." : "You are logged out. Your saved notes are kept.",
       auto ? "warn" : "ok");
     route();
   }

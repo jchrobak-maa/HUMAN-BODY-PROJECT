@@ -33,7 +33,7 @@
       '<h1 class="ws-title">' + esc(o.emoji) + " " + esc(o.name) + "</h1>" +
       '<p class="ws-sys">' + esc(ov.bodySystem) + "</p>" +
       '<div class="ws-id"><span>First name only: ____________________</span>' +
-        "<span>Period: ______</span><span>Date: ____________</span></div>" +
+        "<span>Cluster: ______</span><span>Date: ____________</span></div>" +
     "</header>";
 
     // Overview

@@ -109,9 +109,9 @@
     var classes = uniqueSorted(STATE.rows.map(function (r) { return r.class || r.classCode; }));
     var organs = uniqueSorted(STATE.rows.map(function (r) { return r.organ; }))
       .sort(function (a, b) { return orderIndex(ORGAN_ORDER, a) - orderIndex(ORGAN_ORDER, b); });
-    classEl.innerHTML = '<option value="">All periods</option>' +
+    classEl.innerHTML = '<option value="">All clusters</option>' +
       classes.map(function (c) {
-        var label = /^[a-e]$/i.test(c) ? "Period " + c.toUpperCase() : c;
+        var label = /^[a-e]$/i.test(c) ? "Cluster " + c.toUpperCase() : c;
         return '<option value="' + esc(c) + '">' + esc(label) + "</option>";
       }).join("");
     organEl.innerHTML = '<option value="">All organs</option>' +
@@ -184,7 +184,7 @@
     }).join("");
 
     var openAttr = STATE.collapsed ? "" : " open";
-    var period = g.cls ? "Period " + String(g.cls).toUpperCase() : "(no period)";
+    var period = g.cls ? "Cluster " + String(g.cls).toUpperCase() : "(no cluster)";
     return '<details class="t-student"' + openAttr + ">" +
       '<summary class="t-student__head">' +
         '<span class="t-student__name">' + esc(g.username) +
