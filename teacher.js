@@ -20,7 +20,7 @@
     : [];
   var SECTION_ORDER = ["Overview", "Anatomy", "How it works with other systems", "Disease case study", "Big takeaway"];
 
-  var STATE = { rows: [], collapsed: false };
+  var STATE = { rows: [], activity: [], activityByUser: {}, collapsed: false };
 
   var authEl    = document.getElementById("auth");
   var keyEl     = document.getElementById("key");
@@ -57,7 +57,10 @@
   }
 
   /* ------------------------------------------------------------ JSONP */
-  function fetchNotes(key) {
+  function fetchNotes(key) { return jsonp(key, ""); }
+  function fetchActivity(key) { return jsonp(key, "activity"); }
+
+  function jsonp(key, dataParam) {
     return new Promise(function (resolve, reject) {
       if (!ENDPOINT) { reject(new Error("no-endpoint")); return; }
       var cb = "hbm_jsonp_" + Math.random().toString(36).slice(2);
@@ -69,8 +72,10 @@
         if (script.parentNode) script.parentNode.removeChild(script);
       }
       script.onerror = function () { clearTimeout(timer); cleanup(); reject(new Error("network")); };
-      script.src = ENDPOINT + (ENDPOINT.indexOf("?") < 0 ? "?" : "&") +
+      var url = ENDPOINT + (ENDPOINT.indexOf("?") < 0 ? "?" : "&") +
         "key=" + encodeURIComponent(key) + "&callback=" + cb;
+      if (dataParam) url += "&data=" + encodeURIComponent(dataParam);
+      script.src = url;
       document.body.appendChild(script);
     });
   }
@@ -92,6 +97,15 @@
       authEl.hidden = true;
       dashEl.hidden = false;
       render();
+      // Activity data is a separate read; if the Apps Script supports it,
+      // pull it in the background and re-render with anti-cheating signals.
+      fetchActivity(key).then(function (act) {
+        if (act && act.ok) {
+          STATE.activity = act.rows || [];
+          groupActivity();
+          render();
+        }
+      }).catch(function () {});
     }).catch(function (e) {
       if (e.message === "no-endpoint") setAuth("No class notebook is connected (the endpoint in config.js is blank).", "warn");
       else if (e.message === "timeout") setAuth("The notebook took too long to respond. Try Refresh.", "warn");
@@ -107,6 +121,55 @@
     if (c) return String(c).toLowerCase();
     var m = /^student\d{1,2}([a-e])$/i.exec(r.username || r.name || "");
     return m ? m[1].toLowerCase() : "";
+  }
+
+  function groupActivity() {
+    STATE.activityByUser = {};
+    (STATE.activity || []).forEach(function (r) {
+      var u = r.username;
+      if (!u) return;
+      (STATE.activityByUser[u] = STATE.activityByUser[u] || []).push(r);
+    });
+  }
+  function formatMs(ms) {
+    var n = Number(ms);
+    if (!n || isNaN(n)) return "";
+    if (n < 1000) return n + "ms";
+    var s = Math.round(n / 1000);
+    if (s < 60) return s + "s";
+    var m = Math.round(s / 60);
+    return m + "m";
+  }
+  function activitySummary(username) {
+    var events = (STATE.activityByUser && STATE.activityByUser[username]) || [];
+    if (!events.length) return null;
+    var counts = { heartbeat: 0, blur: 0, paste: 0, "logout-auto": 0, "note-save": 0 };
+    events.forEach(function (e) { if (counts[e.event] != null) counts[e.event]++; });
+    return { events: events, counts: counts, activeMin: counts.heartbeat };
+  }
+  function activityPanel(g) {
+    var s = activitySummary(g.username);
+    if (!s) return "";
+    var line = "~" + s.activeMin + " min active · " +
+               s.counts.paste + (s.counts.paste === 1 ? " paste" : " pastes") + " · " +
+               s.counts.blur + " tab-aways" +
+               (s.counts["logout-auto"] ? " · " + s.counts["logout-auto"] + " auto-logouts" : "");
+    var hasFlag = (s.counts.paste > 0) || (s.counts.blur >= 5);
+    var sortedEvents = s.events.slice().sort(function (a, b) { return new Date(a.timestamp) - new Date(b.timestamp); });
+    var rows = sortedEvents.map(function (e) {
+      return '<li class="t-act__row">' +
+        '<span class="t-act__time">' + esc(fmt(e.timestamp)) + "</span>" +
+        '<span class="t-act__event t-act__event--' + esc(e.event) + '">' + esc(e.event) + "</span>" +
+        (e.organ ? '<span class="t-act__organ">' + esc(e.organ) + "</span>" : "") +
+        (e.section ? '<span class="t-act__section">' + esc(e.section) + "</span>" : "") +
+        (e.detail ? '<span class="t-act__detail">' + esc(e.detail) + "</span>" : "") +
+        (e.durationMs ? '<span class="t-act__dur">' + esc(formatMs(e.durationMs)) + "</span>" : "") +
+      "</li>";
+    }).join("");
+    return '<details class="t-activity' + (hasFlag ? " t-activity--flag" : "") + '">' +
+      '<summary class="t-activity__head">📊 Activity — ' + esc(line) + '</summary>' +
+      '<ul class="t-act">' + rows + "</ul>" +
+    "</details>";
   }
 
   function uniqueSorted(vals) {
@@ -229,7 +292,7 @@
           g.rows.length + (g.rows.length === 1 ? " note" : " notes") + "</span>" +
         '<button type="button" class="t-student__print" title="Print just this student\'s notes">🖨 Print</button>' +
       "</summary>" +
-      '<div class="t-student__body">' + body + "</div>" +
+      '<div class="t-student__body">' + activityPanel(g) + body + "</div>" +
     "</details>";
   }
 

@@ -501,6 +501,90 @@
       .catch(function (e) { return { ok: false, reason: e.message }; });
   }
 
+  /* --- activity logging (anti-cheating signals) -----------------------
+     Fires lightweight events into a separate Activity sheet via the same
+     Apps Script endpoint (discriminated by type:"activity"). Tracks:
+     login/logout, heartbeats (~active time), tab blur/focus, paste, and
+     time-to-save per note. */
+  var lastOrgan = "";
+  var pageLoadAt = Date.now();
+  var sessionStartAt = null;
+  var lastBlurAt = null;
+  var heartbeatTimer = null;
+
+  function postActivity(event, detail) {
+    var s = getSession();
+    if (!s || s.role !== "student") return;
+    var endpoint = (NOTES_CFG.endpoint || "").trim();
+    if (!endpoint) return;
+    var d = detail || {};
+    var payload = {
+      type: "activity",
+      event: event,
+      username: s.username,
+      firstName: s.firstName || "",
+      class: s.cls || "",
+      organ: d.organ != null ? d.organ : lastOrgan,
+      section: d.section || "",
+      detail: d.text || "",
+      durationMs: d.ms != null ? d.ms : "",
+      at: new Date().toISOString()
+    };
+    try { fetch(endpoint, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) }).catch(function () {}); } catch (e) {}
+  }
+
+  function startHeartbeat() {
+    stopHeartbeat();
+    heartbeatTimer = setInterval(function () {
+      if (document.visibilityState === "visible" && getSession()) {
+        postActivity("heartbeat", { organ: lastOrgan });
+      }
+    }, 60000); // every 60s while visible
+  }
+  function stopHeartbeat() {
+    if (heartbeatTimer) { clearInterval(heartbeatTimer); heartbeatTimer = null; }
+  }
+
+  function onLoginActivity() {
+    sessionStartAt = Date.now();
+    postActivity("login", { organ: lastOrgan });
+    startHeartbeat();
+  }
+  function onLogoutActivity(auto) {
+    var ms = sessionStartAt ? Date.now() - sessionStartAt : "";
+    postActivity(auto ? "logout-auto" : "logout", { ms: ms, organ: lastOrgan });
+    stopHeartbeat();
+    sessionStartAt = null;
+    lastBlurAt = null;
+  }
+
+  // visibilitychange: log blur/focus pairs
+  document.addEventListener("visibilitychange", function () {
+    if (!getSession()) return;
+    if (document.visibilityState === "hidden") {
+      lastBlurAt = Date.now();
+      postActivity("blur", { organ: lastOrgan });
+    } else {
+      var dur = lastBlurAt ? Date.now() - lastBlurAt : "";
+      postActivity("focus", { organ: lastOrgan, ms: dur });
+      lastBlurAt = null;
+    }
+  });
+  // Catch browser close / refresh with sendBeacon (more reliable than fetch).
+  window.addEventListener("beforeunload", function () {
+    var s = getSession();
+    var endpoint = (NOTES_CFG.endpoint || "").trim();
+    if (!s || s.role !== "student" || !endpoint || !navigator.sendBeacon) return;
+    var ms = sessionStartAt ? Date.now() - sessionStartAt : "";
+    var payload = JSON.stringify({
+      type: "activity", event: "unload",
+      username: s.username, firstName: s.firstName || "", class: s.cls || "",
+      organ: lastOrgan, section: "", detail: "", durationMs: ms,
+      at: new Date().toISOString()
+    });
+    try { navigator.sendBeacon(endpoint, payload); } catch (e) {}
+  });
+
   // Guiding question shown above each section's note box.
   function notePrompt(key, o) {
     switch (key) {
@@ -559,6 +643,7 @@
         sess.firstName = first.split(/\s+/)[0];   // first name only
         setSession(sess);
         resetIdle();
+        onLoginActivity();
         renderAuthBar();
         route();   // re-render so the note boxes load this user's notes
       });
@@ -566,6 +651,7 @@
   }
 
   function doLogout(auto) {
+    onLogoutActivity(auto);
     clearSession();
     if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
     if (typeof TTS !== "undefined") TTS.stop();
@@ -601,6 +687,21 @@
     var saveEl = box.querySelector(".notecatcher__save");
     var statusEl = box.querySelector(".notecatcher__status");
     var savedEl = box.querySelector(".notecatcher__saved");
+
+    // anti-cheating signals scoped to this note box
+    var firstInputAt = null;
+    var pasteCount = 0;
+    textEl.addEventListener("input", function () { if (!firstInputAt) firstInputAt = Date.now(); });
+    textEl.addEventListener("paste", function (e) {
+      pasteCount++;
+      var pasted = "";
+      try { pasted = ((e.clipboardData || window.clipboardData).getData("text") || ""); } catch (err) {}
+      var sample = pasted.slice(0, 80).replace(/\s+/g, " ");
+      postActivity("paste", {
+        organ: o.id, section: sectionLabel,
+        text: "len=" + pasted.length + (sample ? " | " + sample : "")
+      });
+    });
 
     function setStatus(msg, kind) {
       statusEl.textContent = msg;
@@ -639,9 +740,19 @@
         section: sectionLabel, prompt: prompt,
         note: note, at: new Date().toISOString()
       };
+      var typingMs = firstInputAt ? Date.now() - firstInputAt : null;
+      var dwellMs = Date.now() - pageLoadAt;
+      var pastesThisNote = pasteCount;
+      var noteLen = note.length;
       postNote(payload).then(function (res) {
         var sent = res.ok;
         addOrganNote(o.id, { ts: Date.now(), note: note, sectionKey: sectionKey, section: sectionLabel, sent: sent });
+        postActivity("note-save", {
+          organ: o.id, section: sectionLabel,
+          ms: typingMs != null ? typingMs : "",
+          text: "len=" + noteLen + " pastes=" + pastesThisNote + " dwell=" + Math.round(dwellMs / 1000) + "s"
+        });
+        firstInputAt = null; pasteCount = 0;
         textEl.value = "";
         renderSaved();
         saveEl.disabled = false;
@@ -716,6 +827,7 @@
 
   function renderHome() {
     TTS.stop();
+    lastOrgan = ""; pageLoadAt = Date.now();
     var grid = ORGANS.map(function (o) {
       return '<a class="home-organ" href="#' + esc(o.id) + '">' +
         '<span class="home-organ__emoji" aria-hidden="true">' + esc(o.emoji) + "</span>" +
@@ -783,6 +895,7 @@
   function renderOrgan(id) {
     const o = organById(id);
     TTS.stop();
+    lastOrgan = o.id; pageLoadAt = Date.now();
 
     articleEl.innerHTML = heroHtml(o);
 
@@ -876,5 +989,7 @@
   buildNav();
   renderAuthBar();
   resetIdle();
+  // resume activity heartbeat if a session survived a refresh
+  if (getSession()) { if (!sessionStartAt) sessionStartAt = Date.now(); startHeartbeat(); }
   route();
 })();
