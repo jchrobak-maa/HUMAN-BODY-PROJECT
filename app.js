@@ -501,6 +501,87 @@
       .catch(function (e) { return { ok: false, reason: e.message }; });
   }
 
+  /* --- optional self-check (free, rule-based) -------------------------
+     Reads rubrics from rubrics.js if present. Returns:
+       { verdict: "good"|"close"|"miss"|"soft", message, hintLabel, hintSelector }
+     The Check button is only shown when a rubric (or soft-note fallback)
+     exists for that prompt; it never blocks Save. */
+  function rubricFor(o, sectionKey) {
+    var R = (typeof RUBRICS !== "undefined" && RUBRICS[o.id]) || null;
+    if (R && R[sectionKey]) return R[sectionKey];
+    // soft fallback for reading-paragraph notes
+    var m = /^reading-(\d+)$/.exec(sectionKey);
+    if (m && o.reading) {
+      var idx = parseInt(m[1], 10) - 1;
+      var para = o.reading[idx];
+      if (para) {
+        return {
+          expect: [], misconceptions: [],
+          hintLabel: para.h ? "the paragraph “" + para.h + "”" : "Paragraph " + (idx + 1),
+          hintSelector: '[data-reading-idx="' + (idx + 1) + '"]',
+          softNote: "Re-read the paragraph and compare your note. Did you capture the key idea in your own words?"
+        };
+      }
+    }
+    return null;
+  }
+
+  function checkAnswer(note, rubric) {
+    if (!rubric) return null;
+    // 1) Targeted misconceptions first — these give the most useful feedback.
+    var mcList = rubric.misconceptions || [];
+    for (var i = 0; i < mcList.length; i++) {
+      if (mcList[i].trigger && mcList[i].trigger.test(note)) {
+        return { verdict: "miss", message: mcList[i].hint, hintLabel: rubric.hintLabel, hintSelector: rubric.hintSelector };
+      }
+    }
+    var lower = note.toLowerCase();
+    var expect = rubric.expect || [];
+    // 2) No keywords to check + soft note → friendly nudge
+    if (expect.length === 0) {
+      var soft = rubric.softNote || "Compare your note to the page when you're done.";
+      return { verdict: "soft", message: soft, hintLabel: rubric.hintLabel, hintSelector: rubric.hintSelector };
+    }
+    // 3) Keyword coverage with synonym arrays
+    var matched = 0, missing = [];
+    for (var j = 0; j < expect.length; j++) {
+      var item = expect[j];
+      var synonyms = Array.isArray(item) ? item : [item];
+      var hit = false;
+      for (var k = 0; k < synonyms.length; k++) {
+        if (lower.indexOf(synonyms[k].toLowerCase()) !== -1) { hit = true; break; }
+      }
+      if (hit) matched++;
+      else missing.push(synonyms[0]);
+    }
+    var ratio = matched / expect.length;
+    if (ratio >= 0.75) {
+      return { verdict: "good", message: "Looks good — you covered the key ideas.", hintLabel: rubric.hintLabel, hintSelector: rubric.hintSelector };
+    }
+    if (ratio >= 0.4) {
+      return {
+        verdict: "close",
+        message: "Close — try mentioning " + missing.slice(0, 2).join(" and ") + ". Look at the " + rubric.hintLabel + " section.",
+        hintLabel: rubric.hintLabel, hintSelector: rubric.hintSelector
+      };
+    }
+    return {
+      verdict: "miss",
+      message: "Not quite — your answer should mention " + missing.slice(0, 3).join(", ") + ". Look at the " + rubric.hintLabel + " section.",
+      hintLabel: rubric.hintLabel, hintSelector: rubric.hintSelector
+    };
+  }
+
+  // Scroll to + pulse a section so the student can self-correct.
+  function highlightTarget(selector) {
+    if (!selector) return;
+    var el = document.querySelector(selector);
+    if (!el) return;
+    try { el.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (e) { el.scrollIntoView(); }
+    el.classList.add("is-highlighted");
+    setTimeout(function () { el.classList.remove("is-highlighted"); }, 3000);
+  }
+
   /* --- activity logging (anti-cheating signals) -----------------------
      Fires lightweight events into a separate Activity sheet via the same
      Apps Script endpoint (discriminated by type:"activity"). Tracks:
@@ -671,6 +752,7 @@
   // A compact note box attached to one content section, with a guiding prompt.
   function noteCatcher(o, sectionKey, sectionLabel, promptOverride) {
     var prompt = promptOverride || notePrompt(sectionKey, o);
+    var rubric = rubricFor(o, sectionKey);
     var box = el("div", { class: "card notecatcher" });
     box.innerHTML =
       '<div class="notecatcher__head"><span class="notecatcher__pen" aria-hidden="true">✎</span>' +
@@ -679,14 +761,41 @@
       '<textarea class="notecatcher__text" rows="2" placeholder="Type your answer…"></textarea>' +
       '<div class="notecatcher__actions">' +
         '<button type="button" class="notecatcher__save">Save note</button>' +
+        (rubric ? '<button type="button" class="notecatcher__check" title="Optional self-check before saving">🔍 Check my answer</button>' : "") +
         '<span class="notecatcher__status" role="status" aria-live="polite"></span>' +
       "</div>" +
+      (rubric ? '<div class="notecatcher__feedback" hidden role="status" aria-live="polite"></div>' : "") +
       '<ul class="notecatcher__saved"></ul>';
 
     var textEl = box.querySelector(".notecatcher__text");
     var saveEl = box.querySelector(".notecatcher__save");
     var statusEl = box.querySelector(".notecatcher__status");
     var savedEl = box.querySelector(".notecatcher__saved");
+    var checkEl = box.querySelector(".notecatcher__check");
+    var feedbackEl = box.querySelector(".notecatcher__feedback");
+
+    if (checkEl && feedbackEl) {
+      checkEl.addEventListener("click", function () {
+        var note = textEl.value.trim();
+        if (!note) { setStatus("Type something to check first.", "warn"); textEl.focus(); return; }
+        var r = checkAnswer(note, rubric);
+        if (!r) return;
+        feedbackEl.hidden = false;
+        feedbackEl.className = "notecatcher__feedback feedback--" + r.verdict;
+        var icon = r.verdict === "good" ? "✓" : r.verdict === "close" ? "⚠" : r.verdict === "miss" ? "✗" : "💡";
+        var showBtn = (r.verdict !== "good" && r.hintSelector)
+          ? '<button type="button" class="feedback__show" data-selector="' + esc(r.hintSelector) + '">Show me where →</button>'
+          : "";
+        feedbackEl.innerHTML =
+          '<span class="feedback__icon" aria-hidden="true">' + icon + "</span>" +
+          '<span class="feedback__text">' + esc(r.message) + "</span>" +
+          showBtn;
+      });
+      feedbackEl.addEventListener("click", function (e) {
+        var btn = e.target.closest && e.target.closest(".feedback__show");
+        if (btn) highlightTarget(btn.getAttribute("data-selector"));
+      });
+    }
 
     // anti-cheating signals scoped to this note box
     var firstInputAt = null;
@@ -797,7 +906,7 @@
       "</div>" +
       '<p class="reading__p">' + esc(para.p) + "</p>" +
       figHtml;
-    var row = el("div", { class: "reading__row" });
+    var row = el("div", { class: "reading__row", "data-reading-idx": String(i + 1) });
     row.appendChild(prose);
     row.appendChild(noteCatcher(o, "reading-" + (i + 1), "Deep dive ¶" + (i + 1),
       "In your own words, what is the most important idea in this paragraph?"));
