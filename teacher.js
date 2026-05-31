@@ -18,6 +18,10 @@
   var ORGAN_ORDER = (typeof ORGANS !== "undefined")
     ? ORGANS.map(function (o) { return o.name; })
     : [];
+  // id -> { name, emoji } so we can label heartbeats-by-organ chips.
+  var ORGAN_META = (typeof ORGANS !== "undefined")
+    ? ORGANS.reduce(function (m, o) { m[o.id] = { name: o.name, emoji: o.emoji }; return m; }, {})
+    : {};
   var SECTION_ORDER = ["Overview", "Anatomy", "How it works with other systems", "Disease case study", "Big takeaway"];
 
   var STATE = { rows: [], activity: [], activityByUser: {}, collapsed: false };
@@ -144,8 +148,17 @@
     var events = (STATE.activityByUser && STATE.activityByUser[username]) || [];
     if (!events.length) return null;
     var counts = { heartbeat: 0, blur: 0, paste: 0, "logout-auto": 0, "note-save": 0 };
-    events.forEach(function (e) { if (counts[e.event] != null) counts[e.event]++; });
-    return { events: events, counts: counts, activeMin: counts.heartbeat };
+    var timeByOrgan = {};
+    events.forEach(function (e) {
+      if (counts[e.event] != null) counts[e.event]++;
+      // Heartbeats fire ~once per visible minute, so heartbeat count per organ
+      // ≈ minutes spent on that organ (even if no notes were saved).
+      if (e.event === "heartbeat") {
+        var k = e.organ || "_home";
+        timeByOrgan[k] = (timeByOrgan[k] || 0) + 1;
+      }
+    });
+    return { events: events, counts: counts, activeMin: counts.heartbeat, timeByOrgan: timeByOrgan };
   }
   function activityPanel(g) {
     var s = activitySummary(g.username);
@@ -155,6 +168,15 @@
                s.counts.blur + " tab-aways" +
                (s.counts["logout-auto"] ? " · " + s.counts["logout-auto"] + " auto-logouts" : "");
     var hasFlag = (s.counts.paste > 0) || (s.counts.blur >= 5);
+
+    // Time-per-page chips, sorted by most time first.
+    var organKeys = Object.keys(s.timeByOrgan).sort(function (a, b) { return s.timeByOrgan[b] - s.timeByOrgan[a]; });
+    var timeChips = organKeys.map(function (k) {
+      var meta = (k === "_home") ? { name: "Home", emoji: "🏠" } : (ORGAN_META[k] || { name: k, emoji: "•" });
+      return '<span class="t-act__timechip">' + esc(meta.emoji) + " " + esc(meta.name) +
+        " · <b>" + s.timeByOrgan[k] + "m</b></span>";
+    }).join("");
+
     var sortedEvents = s.events.slice().sort(function (a, b) { return new Date(a.timestamp) - new Date(b.timestamp); });
     var rows = sortedEvents.map(function (e) {
       return '<li class="t-act__row">' +
@@ -166,8 +188,12 @@
         (e.durationMs ? '<span class="t-act__dur">' + esc(formatMs(e.durationMs)) + "</span>" : "") +
       "</li>";
     }).join("");
+
     return '<details class="t-activity' + (hasFlag ? " t-activity--flag" : "") + '">' +
-      '<summary class="t-activity__head">📊 Activity — ' + esc(line) + '</summary>' +
+      '<summary class="t-activity__head">' +
+        '<span class="t-activity__line">📊 Activity — ' + esc(line) + '</span>' +
+        (timeChips ? '<span class="t-act__times"><b>Time per page:</b> ' + timeChips + "</span>" : "") +
+      "</summary>" +
       '<ul class="t-act">' + rows + "</ul>" +
     "</details>";
   }
