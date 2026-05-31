@@ -45,7 +45,7 @@
         <select id="organFilter" class="teacher-select" aria-label="Filter by organ"></select>
         <span id="summary" class="teacher-summary"></span>
         <span class="teacher-toolbar__spacer"></span>
-        <button id="expand" class="teacher-btn teacher-btn--ghost" type="button">Collapse all</button>
+        <button id="expand" class="teacher-btn teacher-btn--ghost" type="button">Expand all</button>
         <button id="refresh" class="teacher-btn teacher-btn--ghost" type="button">Refresh</button>
         <button id="print" class="teacher-btn teacher-btn--ghost" type="button">Print</button>
         <a class="teacher-btn teacher-btn--ghost" href="packet.html#all" target="_blank" rel="noopener">Worksheets</a>
@@ -68,9 +68,10 @@
           </dl>
           <p class="teacher-legend__foot">A red <b>🚩 flag</b> next to a student name (and a red edge on the card) means the activity matched one or more of these signals — visible without expanding anything:<br>
           • any <b>paste</b> into a note box, <br>
-          • <b>5+ tab-aways</b> during the session, or <br>
-          • a <b>note saved with under 5 seconds of typing</b> since the first keystroke (implausibly fast). <br>
-          Hover the 🚩 to see exactly which signals fired. The <b>Time per page</b> line shows how many minutes the student spent on each organ (each heartbeat ≈ 1 minute of active viewing), so you can spot off-task browsing even when no notes were saved. Treat these as signals, not proof.</p>
+          • <b>5+ tab-aways</b> during the session, <br>
+          • a <b>note saved with under 5 seconds of typing</b> since the first keystroke (implausibly fast), or <br>
+          • a session that's <b>under 50% on-task</b> (after at least 5 min of data). <br>
+          Hover the 🚩 to see exactly which signals fired. The <b>on-task %</b> chip (green / amber / red) is the tab-visible time ÷ total tab time; the <b>Time per page</b> line shows how many minutes the student spent on each organ (each heartbeat ≈ 1 minute of active viewing) so you can spot off-task browsing even when no notes were saved. Student cards start collapsed for easy reading — click a card or hit <b>Expand all</b> to drill in. Treat these as signals, not proof.</p>
         </div>
       </details>
       <div id="students" class="teacher-students"></div>

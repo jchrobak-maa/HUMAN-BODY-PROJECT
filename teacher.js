@@ -24,7 +24,9 @@
     : {};
   var SECTION_ORDER = ["Overview", "Anatomy", "How it works with other systems", "Disease case study", "Big takeaway"];
 
-  var STATE = { rows: [], activity: [], activityByUser: {}, collapsed: false };
+  // Students start collapsed for a tidy default roster view; clusters stay open
+  // so you can see every student at a glance. The toolbar button toggles students.
+  var STATE = { rows: [], activity: [], activityByUser: {}, collapsed: true };
 
   var authEl    = document.getElementById("auth");
   var keyEl     = document.getElementById("key");
@@ -150,11 +152,16 @@
     var counts = { heartbeat: 0, blur: 0, paste: 0, "logout-auto": 0, "note-save": 0, "video-click": 0 };
     var timeByOrgan = {};
     var fastSaves = 0;
+    var offTaskMs = 0;     // sum of measurable blur durations (recorded as duration on focus events)
     events.forEach(function (e) {
       if (counts[e.event] != null) counts[e.event]++;
       if (e.event === "heartbeat") {
         var k = e.organ || "_home";
         timeByOrgan[k] = (timeByOrgan[k] || 0) + 1;
+      }
+      if (e.event === "focus") {
+        var dms = Number(e.durationMs);
+        if (dms > 0) offTaskMs += dms;
       }
       // A "note-save" with under 5s of typing since the first keystroke is
       // implausibly fast for a thought-out answer and is a strong copy-paste signal.
@@ -163,16 +170,34 @@
         if (ms > 0 && ms < 5000) fastSaves++;
       }
     });
+    // On-task % = visible-tab time ÷ (visible-tab + tab-away). Returns null when
+    // there's no measurable data either way.
+    var onTaskMs = counts.heartbeat * 60000;
+    var onTaskPct = (onTaskMs + offTaskMs) > 0
+      ? Math.round((onTaskMs / (onTaskMs + offTaskMs)) * 100)
+      : null;
     // What earned this student a 🚩 in the collapsed view.
     var reasons = [];
     if (counts.paste > 0) reasons.push(counts.paste + " paste" + (counts.paste === 1 ? "" : "s"));
     if (counts.blur >= 5) reasons.push(counts.blur + " tab-aways");
     if (fastSaves > 0) reasons.push(fastSaves + " very fast save" + (fastSaves === 1 ? "" : "s") + " (under 5s typing)");
-    return { events: events, counts: counts, activeMin: counts.heartbeat, timeByOrgan: timeByOrgan, fastSaves: fastSaves, reasons: reasons };
+    if (onTaskPct != null && onTaskPct < 50 && (onTaskMs + offTaskMs) >= 5 * 60000) {
+      // only flag low on-task once they have at least 5 minutes of data
+      reasons.push("only " + onTaskPct + "% on-task");
+    }
+    return { events: events, counts: counts, activeMin: counts.heartbeat, timeByOrgan: timeByOrgan, fastSaves: fastSaves, reasons: reasons, onTaskPct: onTaskPct, offTaskMs: offTaskMs };
   }
   function activityPanel(g) {
     var s = activitySummary(g.username);
     if (!s) return "";
+    var pctChip = "";
+    if (s.onTaskPct != null) {
+      var pctClass = s.onTaskPct >= 80 ? "t-act__pct--good" :
+                     s.onTaskPct >= 50 ? "t-act__pct--warn" : "t-act__pct--bad";
+      pctChip = ' <span class="t-act__pct ' + pctClass + '" title="' +
+        esc("Tab visible for " + formatMs(s.activeMin * 60000) + " · tab away for " + formatMs(s.offTaskMs)) +
+        '">' + s.onTaskPct + "% on-task</span>";
+    }
     var line = "~" + s.activeMin + " min active · " +
                s.counts.paste + (s.counts.paste === 1 ? " paste" : " pastes") + " · " +
                s.counts.blur + " tab-aways · " +
@@ -202,7 +227,7 @@
 
     return '<details class="t-activity' + (hasFlag ? " t-activity--flag" : "") + '">' +
       '<summary class="t-activity__head">' +
-        '<span class="t-activity__line">📊 Activity — ' + esc(line) + '</span>' +
+        '<span class="t-activity__line">📊 Activity — ' + esc(line) + pctChip + "</span>" +
         (timeChips ? '<span class="t-act__times"><b>Time per page:</b> ' + timeChips + "</span>" : "") +
       "</summary>" +
       '<ul class="t-act">' + rows + "</ul>" +
@@ -274,7 +299,8 @@
       var nNotes = sKeys.reduce(function (sum, sk) { return sum + c.students[sk].rows.length; }, 0);
       var label = c.cls ? "Cluster " + c.cls.toUpperCase() : "(no cluster)";
       var clusterClass = c.cls ? " cluster-" + c.cls : "";
-      return '<details class="t-cluster' + clusterClass + '"' + (STATE.collapsed ? "" : " open") + ">" +
+      // Clusters always open by default — the student cards inside collapse instead.
+      return '<details class="t-cluster' + clusterClass + '" open>' +
         '<summary class="t-cluster__head">' +
           '<span class="t-cluster__name">' + esc(label) + "</span>" +
           '<span class="t-cluster__meta">' + sKeys.length +
@@ -379,7 +405,7 @@
   expandEl.addEventListener("click", function () {
     STATE.collapsed = !STATE.collapsed;
     expandEl.textContent = STATE.collapsed ? "Expand all" : "Collapse all";
-    studentsEl.querySelectorAll("details.t-student, details.t-cluster").forEach(function (d) { d.open = !STATE.collapsed; });
+    studentsEl.querySelectorAll("details.t-student").forEach(function (d) { d.open = !STATE.collapsed; });
   });
 
   /* ------------------------------------------------------------ boot */
