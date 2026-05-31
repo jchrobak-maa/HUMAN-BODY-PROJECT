@@ -801,6 +801,15 @@ a { color: var(--teal); }
 .t-student[open] .t-student__head::before { transform: rotate(90deg); }
 .t-student__name { font-family: var(--serif); font-weight: 600; font-size: 19px; color: var(--ink); }
 .t-student__first { font-family: var(--sans); font-weight: 500; font-size: 14px; color: var(--ink-soft); }
+.t-student__flag {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-family: var(--sans); font-weight: 700; font-size: 12px;
+  color: #fff; background: var(--accent);
+  padding: 2px 9px; border-radius: 999px;
+  margin-left: 6px; cursor: help;
+  vertical-align: 2px;
+}
+.t-student.is-flagged > .t-student__head { box-shadow: inset 4px 0 0 var(--accent); }
 .t-student__meta { font-size: 13px; color: var(--ink-faint); }
 .t-student__print {
   margin-left: auto;

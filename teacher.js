@@ -149,16 +149,26 @@
     if (!events.length) return null;
     var counts = { heartbeat: 0, blur: 0, paste: 0, "logout-auto": 0, "note-save": 0, "video-click": 0 };
     var timeByOrgan = {};
+    var fastSaves = 0;
     events.forEach(function (e) {
       if (counts[e.event] != null) counts[e.event]++;
-      // Heartbeats fire ~once per visible minute, so heartbeat count per organ
-      // ≈ minutes spent on that organ (even if no notes were saved).
       if (e.event === "heartbeat") {
         var k = e.organ || "_home";
         timeByOrgan[k] = (timeByOrgan[k] || 0) + 1;
       }
+      // A "note-save" with under 5s of typing since the first keystroke is
+      // implausibly fast for a thought-out answer and is a strong copy-paste signal.
+      if (e.event === "note-save") {
+        var ms = Number(e.durationMs);
+        if (ms > 0 && ms < 5000) fastSaves++;
+      }
     });
-    return { events: events, counts: counts, activeMin: counts.heartbeat, timeByOrgan: timeByOrgan };
+    // What earned this student a 🚩 in the collapsed view.
+    var reasons = [];
+    if (counts.paste > 0) reasons.push(counts.paste + " paste" + (counts.paste === 1 ? "" : "s"));
+    if (counts.blur >= 5) reasons.push(counts.blur + " tab-aways");
+    if (fastSaves > 0) reasons.push(fastSaves + " very fast save" + (fastSaves === 1 ? "" : "s") + " (under 5s typing)");
+    return { events: events, counts: counts, activeMin: counts.heartbeat, timeByOrgan: timeByOrgan, fastSaves: fastSaves, reasons: reasons };
   }
   function activityPanel(g) {
     var s = activitySummary(g.username);
@@ -168,7 +178,7 @@
                s.counts.blur + " tab-aways · " +
                s.counts["video-click"] + (s.counts["video-click"] === 1 ? " video opened" : " videos opened") +
                (s.counts["logout-auto"] ? " · " + s.counts["logout-auto"] + " auto-logouts" : "");
-    var hasFlag = (s.counts.paste > 0) || (s.counts.blur >= 5);
+    var hasFlag = s.reasons && s.reasons.length > 0;
 
     // Time-per-page chips, sorted by most time first.
     var organKeys = Object.keys(s.timeByOrgan).sort(function (a, b) { return s.timeByOrgan[b] - s.timeByOrgan[a]; });
@@ -312,9 +322,14 @@
     var display = g.firstName
       ? esc(g.firstName) + ' <span class="t-student__first">(' + esc(g.username) + ")</span>"
       : esc(g.username);
-    return '<details class="t-student"' + openAttr + ' data-username="' + esc(g.username) + '">' +
+    var act = activitySummary(g.username);
+    var flagHtml = (act && act.reasons.length)
+      ? ' <span class="t-student__flag" title="' + esc("Worth a closer look: " + act.reasons.join("; ")) + '">🚩 ' + act.reasons.length + "</span>"
+      : "";
+    var flaggedClass = (act && act.reasons.length) ? " is-flagged" : "";
+    return '<details class="t-student' + flaggedClass + '"' + openAttr + ' data-username="' + esc(g.username) + '">' +
       '<summary class="t-student__head">' +
-        '<span class="t-student__name">' + display + "</span>" +
+        '<span class="t-student__name">' + display + flagHtml + "</span>" +
         '<span class="t-student__meta">' + clusterPill + " · " +
           g.rows.length + (g.rows.length === 1 ? " note" : " notes") + "</span>" +
         '<button type="button" class="t-student__print" title="Print just this student\'s notes">🖨 Print</button>' +
