@@ -528,7 +528,7 @@
         '<div class="authbar__who"><span class="authbar__dot" aria-hidden="true">✓</span> ' +
           "Logged in as <b>" + esc(s.username) + "</b>" +
           (s.firstName ? " — " + esc(s.firstName) : "") +
-          (s.cls ? ' <span class="authbar__period">' + esc(periodLabel(s.cls)) + "</span>" : "") +
+          (s.cls ? ' <span class="authbar__period cluster-pill cluster-' + esc(s.cls) + '">' + esc(periodLabel(s.cls)) + "</span>" : "") +
         "</div>" +
         '<button type="button" class="authbar__logout">Log out</button>';
       authBarEl.querySelector(".authbar__logout").addEventListener("click", function () { doLogout(false); });

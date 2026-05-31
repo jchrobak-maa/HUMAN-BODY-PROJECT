@@ -173,7 +173,8 @@
       var sKeys = Object.keys(c.students).sort();
       var nNotes = sKeys.reduce(function (sum, sk) { return sum + c.students[sk].rows.length; }, 0);
       var label = c.cls ? "Cluster " + c.cls.toUpperCase() : "(no cluster)";
-      return '<details class="t-cluster"' + (STATE.collapsed ? "" : " open") + ">" +
+      var clusterClass = c.cls ? " cluster-" + c.cls : "";
+      return '<details class="t-cluster' + clusterClass + '"' + (STATE.collapsed ? "" : " open") + ">" +
         '<summary class="t-cluster__head">' +
           '<span class="t-cluster__name">' + esc(label) + "</span>" +
           '<span class="t-cluster__meta">' + sKeys.length +
@@ -215,14 +216,16 @@
     }).join("");
 
     var openAttr = STATE.collapsed ? "" : " open";
-    var period = g.cls ? "Cluster " + String(g.cls).toUpperCase() : "(no cluster)";
+    var clusterPill = g.cls
+      ? '<span class="cluster-pill cluster-' + esc(g.cls) + '">Cluster ' + esc(String(g.cls).toUpperCase()) + "</span>"
+      : '<span class="cluster-pill">(no cluster)</span>';
     var display = g.firstName
       ? esc(g.firstName) + ' <span class="t-student__first">(' + esc(g.username) + ")</span>"
       : esc(g.username);
     return '<details class="t-student"' + openAttr + ' data-username="' + esc(g.username) + '">' +
       '<summary class="t-student__head">' +
         '<span class="t-student__name">' + display + "</span>" +
-        '<span class="t-student__meta">' + esc(period) + " · " +
+        '<span class="t-student__meta">' + clusterPill + " · " +
           g.rows.length + (g.rows.length === 1 ? " note" : " notes") + "</span>" +
         '<button type="button" class="t-student__print" title="Print just this student\'s notes">🖨 Print</button>' +
       "</summary>" +

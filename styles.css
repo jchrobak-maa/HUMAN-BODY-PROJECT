@@ -237,7 +237,7 @@ a { color: var(--teal); }
 }
 .authbar__who { font-size: 14.5px; color: var(--ink); }
 .authbar__dot { color: var(--teal); font-weight: 700; }
-.authbar__period { font-size: 12px; font-weight: 700; color: var(--teal); background: #fff; border: 1px solid #cfe0df; border-radius: 999px; padding: 2px 8px; margin-left: 4px; }
+.authbar__period { margin-left: 4px; }
 .authbar__logout { font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; color: #fff; background: var(--teal); border: none; border-radius: var(--radius-sm); padding: 8px 16px; }
 .authbar__logout:hover { background: #265b5e; }
 
@@ -750,6 +750,33 @@ a { color: var(--teal); }
 .t-cluster__head::before { content: "▸"; color: var(--accent); font-size: 13px; margin-right: 2px; transition: transform .15s; }
 .t-cluster[open] .t-cluster__head::before { transform: rotate(90deg); }
 .t-cluster__name { font-family: var(--serif); font-weight: 700; font-size: 19px; color: var(--accent-deep); }
+
+/* ---------------------------------------------- CLUSTER COLOR CODING */
+/* Muted, colorblind-friendly palette: soft fills + bold edge + dark text */
+.cluster-a { --cluster-bg: #fae6e6; --cluster-edge: #b04848; --cluster-ink: #6e2828; }
+.cluster-b { --cluster-bg: #f5edcc; --cluster-edge: #b08820; --cluster-ink: #6a5210; }
+.cluster-c { --cluster-bg: #def0de; --cluster-edge: #4a7c4c; --cluster-ink: #2d5a30; }
+.cluster-d { --cluster-bg: #fde5d0; --cluster-edge: #c97529; --cluster-ink: #7a3f10; }
+.cluster-e { --cluster-bg: #ecdef1; --cluster-edge: #7a4b8c; --cluster-ink: #4d2c5b; }
+
+/* Cluster header in the teacher portal — colored band */
+.t-cluster[class*="cluster-"] .t-cluster__head {
+  background: var(--cluster-bg) !important;
+  border-bottom-color: var(--cluster-edge) !important;
+  border-left: 6px solid var(--cluster-edge);
+}
+.t-cluster[class*="cluster-"] .t-cluster__name { color: var(--cluster-ink); }
+.t-cluster[class*="cluster-"] .t-cluster__head::before { color: var(--cluster-edge); }
+
+/* Reusable colored pill: small "Cluster X" chip */
+.cluster-pill {
+  display: inline-block;
+  font-size: 11px; font-weight: 700; letter-spacing: .04em;
+  padding: 2px 9px; border-radius: 999px;
+  background: var(--cluster-bg, var(--line));
+  color: var(--cluster-ink, var(--ink-soft));
+  border: 1px solid var(--cluster-edge, var(--line));
+}
 .t-cluster__meta { font-size: 13px; color: var(--ink-soft); font-weight: 600; }
 .t-cluster__body { padding: 10px 12px 14px; display: flex; flex-direction: column; gap: 10px; }
 .t-cluster__body .t-student { box-shadow: none; }
