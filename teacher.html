@@ -50,6 +50,24 @@
         <button id="print" class="teacher-btn teacher-btn--ghost" type="button">Print</button>
         <a class="teacher-btn teacher-btn--ghost" href="packet.html#all" target="_blank" rel="noopener">Worksheets</a>
       </div>
+      <details class="teacher-legend">
+        <summary class="teacher-legend__head">ℹ️ What do the activity signals mean?</summary>
+        <div class="teacher-legend__body">
+          <p class="teacher-legend__lead">The <b>📊 Activity</b> panel inside each student card summarizes their behavior on the site. Treat these as patterns and signals, <b>not as proof of cheating</b> — client-side logging can be spoofed.</p>
+          <dl class="teacher-legend__list">
+            <div><dt><span class="t-act__event t-act__event--login">login</span></dt><dd>The student logged in. Marks the start of a session.</dd></div>
+            <div><dt><span class="t-act__event t-act__event--logout">logout</span></dt><dd>The student clicked <i>Log out</i>. Duration = how long they were logged in.</dd></div>
+            <div><dt><span class="t-act__event t-act__event--logout-auto">logout-auto</span></dt><dd>The site logged them out automatically after 20 minutes of inactivity.</dd></div>
+            <div><dt><span class="t-act__event t-act__event--unload">unload</span></dt><dd>The browser tab was closed while they were still logged in.</dd></div>
+            <div><dt><span class="t-act__event t-act__event--heartbeat">heartbeat</span></dt><dd>Sent every 60 seconds the tab is visible. The count powers the "<b>~X min active</b>" number in the summary.</dd></div>
+            <div><dt><span class="t-act__event t-act__event--blur">blur</span></dt><dd>The student switched to another tab or window. "<b>Tab-aways</b>" counts these.</dd></div>
+            <div><dt><span class="t-act__event t-act__event--focus">focus</span></dt><dd>The student returned to this tab. Duration = how long they were away.</dd></div>
+            <div><dt><span class="t-act__event t-act__event--paste">paste</span></dt><dd>The student pasted text into a note box. Detail shows length plus the first 80 characters of what was pasted.</dd></div>
+            <div><dt><span class="t-act__event t-act__event--note-save">note-save</span></dt><dd>A note was saved. Detail shows note length, pastes during this note, and time on the page; Duration = time since their first keystroke.</dd></div>
+          </dl>
+          <p class="teacher-legend__foot"><b>🌸 Pink-flagged activity panels</b> have at least one paste <i>or</i> 5+ tab-aways — worth a closer look. Click the panel to expand the full timeline.</p>
+        </div>
+      </details>
       <div id="students" class="teacher-students"></div>
     </section>
   </main>

@@ -741,6 +741,19 @@ a { color: var(--teal); }
 .teacher-summary { font-size: 14px; color: var(--ink-soft); font-weight: 600; }
 .teacher-toolbar__spacer { flex: 1 1 auto; }
 
+.teacher-legend { margin-bottom: 14px; background: var(--bg-panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+.teacher-legend__head { cursor: pointer; padding: 12px 18px; font-size: 14px; font-weight: 600; color: var(--ink); list-style: none; display: flex; align-items: center; gap: 6px; }
+.teacher-legend__head::-webkit-details-marker { display: none; }
+.teacher-legend__head::before { content: "▸"; color: var(--ink-faint); font-size: 11px; transition: transform .15s; }
+.teacher-legend[open] .teacher-legend__head::before { transform: rotate(90deg); }
+.teacher-legend__body { padding: 0 18px 18px; border-top: 1px solid var(--line-soft); }
+.teacher-legend__lead { margin: 12px 0; color: var(--ink-soft); font-size: 14px; line-height: 1.5; }
+.teacher-legend__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 6px 24px; margin: 0; }
+.teacher-legend__list > div { display: flex; gap: 10px; align-items: baseline; padding: 4px 0; }
+.teacher-legend__list dt { margin: 0; flex: none; min-width: 95px; }
+.teacher-legend__list dd { margin: 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.45; }
+.teacher-legend__foot { margin: 14px 0 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; }
+
 .teacher-students { display: flex; flex-direction: column; gap: 16px; }
 .teacher-empty { color: var(--ink-faint); padding: 24px; text-align: center; }
 
