@@ -147,7 +147,7 @@
   function activitySummary(username) {
     var events = (STATE.activityByUser && STATE.activityByUser[username]) || [];
     if (!events.length) return null;
-    var counts = { heartbeat: 0, blur: 0, paste: 0, "logout-auto": 0, "note-save": 0 };
+    var counts = { heartbeat: 0, blur: 0, paste: 0, "logout-auto": 0, "note-save": 0, "video-click": 0 };
     var timeByOrgan = {};
     events.forEach(function (e) {
       if (counts[e.event] != null) counts[e.event]++;
@@ -165,7 +165,8 @@
     if (!s) return "";
     var line = "~" + s.activeMin + " min active · " +
                s.counts.paste + (s.counts.paste === 1 ? " paste" : " pastes") + " · " +
-               s.counts.blur + " tab-aways" +
+               s.counts.blur + " tab-aways · " +
+               s.counts["video-click"] + (s.counts["video-click"] === 1 ? " video opened" : " videos opened") +
                (s.counts["logout-auto"] ? " · " + s.counts["logout-auto"] + " auto-logouts" : "");
     var hasFlag = (s.counts.paste > 0) || (s.counts.blur >= 5);
 

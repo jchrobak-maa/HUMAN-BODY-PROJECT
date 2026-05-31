@@ -838,6 +838,7 @@ a { color: var(--teal); }
 .t-act__event--logout-auto { background: #ecdef1; color: #4d2c5b; }
 .t-act__event--heartbeat { background: #def0de; color: #2d5a30; }
 .t-act__event--note-save { background: var(--teal-soft); color: var(--teal); }
+.t-act__event--video-click { background: var(--gold-soft); color: var(--gold); }
 .t-act__organ { color: var(--ink); font-weight: 600; }
 .t-act__section { color: var(--ink-soft); font-style: italic; }
 .t-act__detail { color: var(--ink-soft); font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px; flex: 1 1 200px; }

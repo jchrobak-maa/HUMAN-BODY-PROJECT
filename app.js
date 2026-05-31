@@ -970,6 +970,19 @@
   document.addEventListener("click", function (e) {
     var btn = e.target.closest && e.target.closest(".listen-btn");
     if (btn) { e.preventDefault(); TTS.speak(btn); return; }
+    var watch = e.target.closest && e.target.closest(".watch__item");
+    if (watch) {
+      // Log the external-video click for the teacher's activity panel.
+      // The link still opens (target=_blank) — we just record it on the way out.
+      var name = (watch.querySelector(".watch__name") || {}).textContent || "";
+      var url = watch.getAttribute("href") || "";
+      postActivity("video-click", {
+        organ: lastOrgan,
+        section: "Watch & learn",
+        text: name + " | " + url
+      });
+      // do not preventDefault — let the anchor open the video
+    }
     var g = e.target.closest && e.target.closest(".glossary");
     document.querySelectorAll(".glossary.is-open").forEach(function (x) { if (x !== g) x.classList.remove("is-open"); });
     if (g) g.classList.toggle("is-open");
