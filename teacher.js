@@ -295,7 +295,16 @@
 
     studentsEl.innerHTML = clusterKeys.map(function (ck) {
       var c = clusters[ck];
-      var sKeys = Object.keys(c.students).sort();
+      // Sort students within the cluster by FIRST NAME (case-insensitive),
+      // falling back to username for ties or when no first name was captured.
+      var sKeys = Object.keys(c.students).sort(function (a, b) {
+        var fa = (c.students[a].firstName || "").toLowerCase();
+        var fb = (c.students[b].firstName || "").toLowerCase();
+        if (fa && fb && fa !== fb) return fa < fb ? -1 : 1;
+        if (fa && !fb) return -1;
+        if (!fa && fb) return 1;
+        return a.toLowerCase().localeCompare(b.toLowerCase());
+      });
       var nNotes = sKeys.reduce(function (sum, sk) { return sum + c.students[sk].rows.length; }, 0);
       var label = c.cls ? "Cluster " + c.cls.toUpperCase() : "(no cluster)";
       var clusterClass = c.cls ? " cluster-" + c.cls : "";
@@ -345,6 +354,13 @@
     var clusterPill = g.cls
       ? '<span class="cluster-pill cluster-' + esc(g.cls) + '">Cluster ' + esc(String(g.cls).toUpperCase()) + "</span>"
       : '<span class="cluster-pill">(no cluster)</span>';
+    // Most-recent-note timestamp shown on the collapsed card so the teacher
+    // can see at a glance when this student last submitted.
+    var latestTs = g.rows.reduce(function (acc, r) {
+      var t = new Date(r.timestamp).getTime();
+      return (isFinite(t) && t > acc) ? t : acc;
+    }, 0);
+    var latestStr = latestTs ? " · last note " + new Date(latestTs).toLocaleString() : "";
     var display = g.firstName
       ? esc(g.firstName) + ' <span class="t-student__first">(' + esc(g.username) + ")</span>"
       : esc(g.username);
@@ -357,7 +373,7 @@
       '<summary class="t-student__head">' +
         '<span class="t-student__name">' + display + flagHtml + "</span>" +
         '<span class="t-student__meta">' + clusterPill + " · " +
-          g.rows.length + (g.rows.length === 1 ? " note" : " notes") + "</span>" +
+          g.rows.length + (g.rows.length === 1 ? " note" : " notes") + esc(latestStr) + "</span>" +
         '<button type="button" class="t-student__print" title="Print just this student\'s notes">🖨 Print</button>' +
       "</summary>" +
       '<div class="t-student__body">' + activityPanel(g) + body + "</div>" +

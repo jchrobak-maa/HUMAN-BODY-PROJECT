@@ -92,7 +92,9 @@ Color-code clusters a–e with a **muted, colorblind-friendly palette** (not pur
 - **Key-gated** by `teacher1` (or whatever the teacher chose). Stored only in Apps Script as `TEACHER_KEY`, **never in the page source** (don't display it as default text on the page).
 - Two-level grouping: **Cluster → Student → Notes-by-organ**.
 - **Student cards start collapsed** for easy roster scanning; clusters open.
+- **Students sorted alphabetically by first name** within each cluster (case-insensitive; tiebreak by username; students with no first name sort last).
 - "FirstName (username)" as the student card title.
+- The collapsed card meta line shows **the timestamp of the student's most recent note** (e.g. *"Cluster B · 3 notes · last note 5/30/2026, 2:30 PM"*) so you can see at a glance when each student last submitted.
 - **🚩 flag chip** next to a student name (with red left edge on the card) when any of these signals fired:
   - any paste into a note box
   - 5+ tab-aways (blur events)
