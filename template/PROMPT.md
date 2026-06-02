@@ -78,6 +78,12 @@ After the Overview, Anatomy, How it works, Case study, and at the very bottom (B
 - Four verdicts: **good** (green ✓), **close** (amber ⚠), **miss** (red ✗ — also fired by any misconception trigger), **soft** (teal 💡 for open-ended prompts).
 - **"Show me where →"** scrolls to + pulses (3 flashes) the relevant section.
 - Never blocks Save. **Generate the rubrics for all subtopics yourself** unless the user said they'd write them.
+- **Spelling-tolerant matching**: ship a tiny Levenshtein helper in app.js. For each single-word expected term, allow 0 typos under 5 chars, 1 typo for 5–9 chars, 2 typos for 10+ chars. Multi-word terms ("blood sugar") stay strict substring. So "circulatry" still credits "circulatory" but short words don't accidentally match. Misconception regex triggers stay exact.
+
+### Accessibility for struggling writers
+- **Spell-check on**: every textarea gets `spellcheck="true"`. Add a small one-liner under each note box telling students they can right-click (or long-press on touch) red-squiggled words for suggestions.
+- **Per-note word bank**: above the textarea, show clickable chips of the subtopic's general vocab + anatomy structure names (de-duplicated, parenthetical aliases split out as separate chips). Clicking a chip inserts the word at the cursor and refocuses the textarea.
+  - **Source the chips from `vocab` + `anatomy` — NOT from the rubric's `expect` list.** This helps spelling and recall without handing over the literal answer keys.
 
 ### Printable worksheets
 - `packet.html?#<subtopic-id>` (or `#all`) renders a print-optimized worksheet with all content + ruled blank lines after each prompt. Hide the toolbar in `@media print`. Linked from every subtopic hero and from the teacher portal.

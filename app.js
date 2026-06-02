@@ -501,6 +501,48 @@
       .catch(function (e) { return { ok: false, reason: e.message }; });
   }
 
+  // Levenshtein edit distance — used so that small typos still count as a
+  // match against the rubric's expected concepts. Standard DP, O(a*b).
+  function editDistance(a, b) {
+    if (a === b) return 0;
+    if (!a.length) return b.length;
+    if (!b.length) return a.length;
+    var prev = new Array(b.length + 1);
+    for (var j = 0; j <= b.length; j++) prev[j] = j;
+    for (var i = 1; i <= a.length; i++) {
+      var cur = [i];
+      for (var k = 1; k <= b.length; k++) {
+        var cost = a.charAt(i - 1) === b.charAt(k - 1) ? 0 : 1;
+        cur[k] = Math.min(cur[k - 1] + 1, prev[k] + 1, prev[k - 1] + cost);
+      }
+      prev = cur;
+    }
+    return prev[b.length];
+  }
+  // Length-scaled tolerance: short words must match exactly (so "the" doesn't
+  // accidentally match "tie"); medium words allow 1 typo; long words allow 2.
+  function fuzzyTolerance(target) {
+    if (target.length >= 10) return 2;
+    if (target.length >= 5) return 1;
+    return 0;
+  }
+  // Single-word terms get an exact-substring check first (fast) and then a
+  // word-by-word Levenshtein fallback. Multi-word terms ("blood sugar") stay
+  // strict substring — fuzzy-matching phrases would be unreliable.
+  function termInNote(lowerNote, term) {
+    var lt = term.toLowerCase();
+    if (lt.indexOf(" ") !== -1) return lowerNote.indexOf(lt) !== -1;
+    if (lowerNote.indexOf(lt) !== -1) return true;
+    var tol = fuzzyTolerance(lt);
+    if (tol === 0) return false;
+    var words = lowerNote.split(/[^a-zà-ÿ0-9']+/i).filter(function (w) { return w.length > 0; });
+    for (var i = 0; i < words.length; i++) {
+      if (Math.abs(words[i].length - lt.length) > tol) continue;
+      if (editDistance(words[i], lt) <= tol) return true;
+    }
+    return false;
+  }
+
   /* --- optional self-check (free, rule-based) -------------------------
      Reads rubrics from rubrics.js if present. Returns:
        { verdict: "good"|"close"|"miss"|"soft", message, hintLabel, hintSelector }
@@ -542,14 +584,15 @@
       var soft = rubric.softNote || "Compare your note to the page when you're done.";
       return { verdict: "soft", message: soft, hintLabel: rubric.hintLabel, hintSelector: rubric.hintSelector };
     }
-    // 3) Keyword coverage with synonym arrays
+    // 3) Keyword coverage with synonym arrays — uses fuzzy matching so small
+    // typos still count (e.g. "circulatry" still credits "circulatory").
     var matched = 0, missing = [];
     for (var j = 0; j < expect.length; j++) {
       var item = expect[j];
       var synonyms = Array.isArray(item) ? item : [item];
       var hit = false;
       for (var k = 0; k < synonyms.length; k++) {
-        if (lower.indexOf(synonyms[k].toLowerCase()) !== -1) { hit = true; break; }
+        if (termInNote(lower, synonyms[k])) { hit = true; break; }
       }
       if (hit) matched++;
       else missing.push(synonyms[0]);
@@ -749,16 +792,51 @@
     }
   }
 
+  // Word bank: general topic vocab + anatomy structure names (de-duplicated).
+  // Drawn from organ data so a student gets relevant spelling help without
+  // the rubric's expected keywords being handed over directly.
+  function wordBankFor(o) {
+    var seen = {}, out = [];
+    function add(raw) {
+      if (!raw) return;
+      // For anatomy entries like "Cardiac muscle (myocardium)" we keep both
+      // the main name AND the parenthetical, since both are useful spellings.
+      String(raw).split(/\s*[(),/]\s*/).forEach(function (piece) {
+        var w = piece.trim();
+        if (!w || w.length < 3) return;
+        var key = w.toLowerCase();
+        if (seen[key]) return;
+        seen[key] = true;
+        out.push(w);
+      });
+    }
+    (o.vocab || []).forEach(function (v) { add(v.term); });
+    (o.anatomy || []).forEach(function (a) { add(a.structure); });
+    return out;
+  }
+  function wordBankHtml(words) {
+    if (!words.length) return "";
+    return '<div class="wordbank">' +
+      '<span class="wordbank__label">💡 Word bank · tap to add</span>' +
+      words.map(function (w) {
+        return '<button type="button" class="wordbank__chip" data-word="' + esc(w) + '">' + esc(w) + "</button>";
+      }).join(" ") +
+    "</div>";
+  }
+
   // A compact note box attached to one content section, with a guiding prompt.
   function noteCatcher(o, sectionKey, sectionLabel, promptOverride) {
     var prompt = promptOverride || notePrompt(sectionKey, o);
     var rubric = rubricFor(o, sectionKey);
+    var bankWords = wordBankFor(o);
     var box = el("div", { class: "card notecatcher" });
     box.innerHTML =
       '<div class="notecatcher__head"><span class="notecatcher__pen" aria-hidden="true">✎</span>' +
         '<span class="notecatcher__label">Note · ' + esc(sectionLabel) + "</span></div>" +
       '<p class="notecatcher__prompt">' + esc(prompt) + "</p>" +
-      '<textarea class="notecatcher__text" rows="2" placeholder="Type your answer…"></textarea>' +
+      wordBankHtml(bankWords) +
+      '<textarea class="notecatcher__text" rows="2" spellcheck="true" placeholder="Type your answer…"></textarea>' +
+      '<p class="notecatcher__spelltip">💡 See a red squiggle under a word? Right-click it (or long-press on a touchscreen) for spelling suggestions.</p>' +
       '<div class="notecatcher__actions">' +
         '<button type="button" class="notecatcher__save">Save note</button>' +
         (rubric ? '<button type="button" class="notecatcher__check" title="Optional self-check before saving">🔍 Check my answer</button>' : "") +
@@ -773,6 +851,25 @@
     var savedEl = box.querySelector(".notecatcher__saved");
     var checkEl = box.querySelector(".notecatcher__check");
     var feedbackEl = box.querySelector(".notecatcher__feedback");
+    var bankEl = box.querySelector(".wordbank");
+
+    // Word-bank chips: insert the word at the cursor (or append) and refocus.
+    if (bankEl) {
+      bankEl.addEventListener("click", function (e) {
+        var chip = e.target.closest && e.target.closest(".wordbank__chip");
+        if (!chip) return;
+        var word = chip.getAttribute("data-word") || "";
+        var start = textEl.selectionStart, end = textEl.selectionEnd, val = textEl.value;
+        var before = val.slice(0, start), after = val.slice(end);
+        // Add a space before if needed; always add a space after for the next word.
+        var pad = (before.length && !/\s$/.test(before)) ? " " : "";
+        var insert = pad + word + " ";
+        textEl.value = before + insert + after;
+        var pos = (before + insert).length;
+        textEl.focus();
+        try { textEl.setSelectionRange(pos, pos); } catch (err) {}
+      });
+    }
 
     if (checkEl && feedbackEl) {
       checkEl.addEventListener("click", function () {
